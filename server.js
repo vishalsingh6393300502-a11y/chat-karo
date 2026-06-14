@@ -1,76 +1,193 @@
-# 🔵 Chat Karo — Deployment Guide
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
 
-## Files Structure
-```
-chat-karo/
-├── server.js        ← Node.js backend (Socket.io)
-├── package.json     ← Dependencies
-├── .gitignore
-└── public/
-    └── index.html   ← Complete frontend
-```
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*' },
+  pingTimeout: 30000,
+  pingInterval: 10000
+});
 
----
+app.use(express.static(path.join(__dirname, 'public')));
 
-## 🚀 RENDER.COM PE DEPLOY KARO (FREE) — Recommended
+// Serve index.html for the root route (fallback if public/ lookup misses)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-### Step 1 — GitHub pe daalo
-1. GitHub.com pe jaao → "New Repository" banao → naam "chat-karo"
-2. Apne PC pe folder kholo → Terminal/Command Prompt kholo
-3. Ye commands chalaao:
-```bash
-cd chat-karo
-git init
-git add .
-git commit -m "Chat Karo launch"
-git remote add origin https://github.com/YOUR_USERNAME/chat-karo.git
-git push -u origin main
-```
+// ============================================================
+//  GENDER-BASED MATCHING QUEUES
+//  waitingUsers.male  → males waiting for a partner
+//  waitingUsers.female → females waiting for a partner
+// ============================================================
+const waitingUsers = { male: [], female: [] };
 
-### Step 2 — Render.com pe deploy
-1. **render.com** pe jaao → Free account banao
-2. "New +" click karo → "Web Service" select karo
-3. GitHub connect karo → "chat-karo" repository choose karo
-4. Settings:
-   - **Name:** chat-karo
-   - **Runtime:** Node
-   - **Build Command:** `npm install`
-   - **Start Command:** `node server.js`
-   - **Plan:** Free
-5. "Create Web Service" click karo
-6. 2-3 minutes mein aapki site LIVE ho jaayegi!
-7. URL milega: `https://chat-karo-XXXX.onrender.com` ✅
+// socketId → partnerId (active chat pairs)
+const connections = {};
 
----
+// Track online count
+let onlineCount = 0;
 
-## 🚀 RAILWAY.APP PE DEPLOY KARO (Alternative)
+io.on('connection', (socket) => {
+  onlineCount++;
+  io.emit('onlineCount', onlineCount);
+  console.log(`[+] Connected: ${socket.id} | Online: ${onlineCount}`);
 
-1. **railway.app** pe jaao → GitHub se login karo
-2. "New Project" → "Deploy from GitHub repo"
-3. "chat-karo" select karo
-4. Auto-detect kar lega sab kuch
-5. 1-2 minute mein live!
+  // ── Start Search ──────────────────────────────────────────
+  socket.on('startSearch', ({ name, gender }) => {
+    socket.userData = { name: sanitize(name), gender };
+    socket.searching = true;
+    matchUser(socket);
+  });
 
----
+  // ── Send Message ─────────────────────────────────────────
+  socket.on('sendMessage', (message) => {
+    const partnerId = connections[socket.id];
+    if (partnerId && message && message.trim()) {
+      io.to(partnerId).emit('receiveMessage', {
+        name: socket.userData.name,
+        message: sanitize(message.trim())
+      });
+    }
+  });
 
-## 💻 LOCAL ME CHALAO (Testing ke liye)
+  // ── Typing Indicators ────────────────────────────────────
+  socket.on('typing', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('partnerTyping', socket.userData.name);
+  });
 
-```bash
-cd chat-karo
-npm install
-node server.js
-```
-Browser mein jaao: `http://localhost:3000`
+  socket.on('stopTyping', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('partnerStopTyping');
+  });
 
----
+  // ── Request Photo ────────────────────────────────────────
+  socket.on('requestPhoto', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('photoRequested', socket.userData.name);
+    }
+  });
 
-## ✨ Features
-- ✅ Gender-based matching (80% opposite / 20% same)
-- ✅ Real-time chat with Socket.io
-- ✅ Typing indicators
-- ✅ Photo request feature
-- ✅ Report system
-- ✅ Online user count
-- ✅ Age verification (18+)
-- ✅ Dark UI similar to ChatBlink
-- ✅ Mobile-friendly
+  // ── New Chat ─────────────────────────────────────────────
+  socket.on('newChat', () => {
+    endCurrentChat(socket, true); // notify partner
+    if (socket.userData) {
+      matchUser(socket);
+    }
+  });
+
+  // ── Report ───────────────────────────────────────────────
+  socket.on('report', ({ reason }) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('partnerDisconnected');
+      delete connections[partnerId];
+    }
+    delete connections[socket.id];
+    console.log(`[!] Report: ${socket.id} reported for "${reason}"`);
+    // After report, put user back in search
+    setTimeout(() => {
+      if (socket.connected && socket.userData) matchUser(socket);
+    }, 500);
+  });
+
+  // ── Disconnect ───────────────────────────────────────────
+  socket.on('disconnect', () => {
+    onlineCount = Math.max(0, onlineCount - 1);
+    io.emit('onlineCount', onlineCount);
+    endCurrentChat(socket, true);
+    removeFromQueue(socket);
+    console.log(`[-] Disconnected: ${socket.id} | Online: ${onlineCount}`);
+  });
+});
+
+// ============================================================
+//  MATCHING ALGORITHM
+//  80% chance → opposite gender
+//  20% chance → same gender (or fallback if no opposite)
+// ============================================================
+function matchUser(socket) {
+  if (!socket.userData) return;
+
+  const { gender } = socket.userData;
+  const opposite = gender === 'male' ? 'female' : 'male';
+
+  // Clean stale sockets from queues
+  waitingUsers.male   = waitingUsers.male.filter(s => s.connected && !connections[s.id]);
+  waitingUsers.female = waitingUsers.female.filter(s => s.connected && !connections[s.id]);
+
+  // Remove self from any queue first
+  removeFromQueue(socket);
+
+  const oppositeQueue = waitingUsers[opposite];
+  const sameQueue     = waitingUsers[gender];
+
+  let partner = null;
+  const roll = Math.random(); // 0.0 – 1.0
+
+  if (roll < 0.80 && oppositeQueue.length > 0) {
+    // 80% → opposite gender
+    partner = oppositeQueue.shift();
+  } else if (sameQueue.length > 0) {
+    // 20% (or no opposite available) → same gender
+    partner = sameQueue.shift();
+  } else if (oppositeQueue.length > 0) {
+    // Fallback → opposite gender if same is empty
+    partner = oppositeQueue.shift();
+  }
+
+  if (partner) {
+    // Create active pair
+    connections[socket.id]  = partner.id;
+    connections[partner.id] = socket.id;
+
+    socket.emit('chatConnected', {
+      partnerName: partner.userData.name,
+      partnerGender: partner.userData.gender
+    });
+    partner.emit('chatConnected', {
+      partnerName: socket.userData.name,
+      partnerGender: socket.userData.gender
+    });
+    console.log(`[~] Paired: ${socket.userData.name}(${gender}) ↔ ${partner.userData.name}(${partner.userData.gender})`);
+  } else {
+    // No match found → add to waiting queue
+    waitingUsers[gender].push(socket);
+    socket.emit('searching');
+    console.log(`[?] Waiting: ${socket.userData.name}(${gender}) | Queue: M=${waitingUsers.male.length} F=${waitingUsers.female.length}`);
+  }
+}
+
+function endCurrentChat(socket, notifyPartner = false) {
+  const partnerId = connections[socket.id];
+  if (partnerId) {
+    if (notifyPartner) io.to(partnerId).emit('partnerDisconnected');
+    delete connections[partnerId];
+    delete connections[socket.id];
+  }
+}
+
+function removeFromQueue(socket) {
+  ['male', 'female'].forEach(g => {
+    const idx = waitingUsers[g].indexOf(socket);
+    if (idx !== -1) waitingUsers[g].splice(idx, 1);
+  });
+}
+
+function sanitize(str) {
+  return String(str)
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .substring(0, 300);
+}
+
+// ============================================================
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`\n🟢 Chat Karo server running → http://localhost:${PORT}\n`);
+});
