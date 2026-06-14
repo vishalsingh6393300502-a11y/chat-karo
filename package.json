@@ -1,3 +1,16 @@
-node_modules/
-.env
-*.log
+{
+  "name": "chat-karo",
+  "version": "1.0.0",
+  "description": "A chat application",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["chat", "messaging"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}
