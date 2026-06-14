@@ -188,6 +188,7 @@ function sanitize(str) {
 
 // ============================================================
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`\n🟢 Chat Karo server running → http://localhost:${PORT}\n`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🟢 Chat Karo server running on 0.0.0.0:${PORT}\n`);
+  console.log(`   PORT env = ${process.env.PORT || '(not set, using 3000)'}\n`);
 });
