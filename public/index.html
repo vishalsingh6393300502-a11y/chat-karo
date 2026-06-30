@@ -28,10 +28,32 @@
       padding: 12px 16px;
       background: #1a1a2e;
       border-bottom: 1px solid #2a2a4a;
+      flex-wrap: wrap;
+      gap: 12px;
     }
     header h1 { font-size: 1.2rem; color: #7b8cde; }
     header .subtitle { font-size: 0.65rem; color: #5b9cff; font-weight: 400; letter-spacing: 0.5px; }
-    #onlineCount { font-size: 0.8rem; color: #6bcb77; }
+    
+    #onlineStats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: #2a2a4a;
+      border-radius: 4px;
+    }
+    .stat-label { color: #aaa; font-weight: 500; }
+    .stat-count { color: #6bcb77; font-weight: 600; }
+    .stat-male { color: #5b9cff; }
+    .stat-female { color: #ff69b4; }
+    .stat-other { color: #ffa500; }
 
     /* ── Screens ── */
     .screen { display: none; width: 100%; max-width: 640px; flex: 1; flex-direction: column; }
@@ -165,6 +187,8 @@
       resize: none;
     }
     #msgInput:focus { border-color: #7b8cde; }
+    
+    #fileInput { display: none; }
 
     /* ── Report modal ── */
     #reportModal {
@@ -199,7 +223,10 @@
 
     @media (max-width: 480px) {
       header h1 { font-size: 1rem; }
+      #onlineStats { font-size: 0.7rem; gap: 8px; }
+      .stat-item { padding: 3px 6px; }
       .msg { max-width: 88%; }
+      .photo-content { max-width: 150px; }
     }
   </style>
 </head>
@@ -210,7 +237,24 @@
     <h1>🔵 Chat Karo</h1>
     <span class="subtitle">made by vishal</span>
   </div>
-  <span id="onlineCount">● 0 online</span>
+  <div id="onlineStats">
+    <div class="stat-item">
+      <span class="stat-label">👥 Total:</span>
+      <span class="stat-count" id="totalOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-male">♂ Male:</span>
+      <span class="stat-count stat-male" id="maleOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-female">♀ Female:</span>
+      <span class="stat-count stat-female" id="femaleOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-other">⚬ Other:</span>
+      <span class="stat-count stat-other" id="otherOnline">0</span>
+    </div>
+  </div>
 </header>
 
 <!-- ── Landing Screen ── -->
@@ -252,7 +296,7 @@
   <div id="chatHeader">
     <div id="partnerInfo">Chatting with <span id="partnerName">—</span></div>
     <div class="chat-actions">
-      <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="requestPhoto()">📷 Photo</button>
+      <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="triggerPhotoUpload()">📷 Photo</button>
       <button class="btn btn-danger btn-sm" onclick="openReport()">🚩 Report</button>
       <button class="btn btn-success btn-sm" onclick="newChat()">Next →</button>
     </div>
@@ -264,8 +308,7 @@
   <div id="inputArea">
     <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
     <button class="btn btn-primary" onclick="sendMessage()">Send</button>
-    <!-- Hidden file input to open the gallery when needed -->
-    <input type="file" id="fileInput" accept="image/*" style="display:none" />
+    <input type="file" id="fileInput" accept="image/*" capture="environment" />
   </div>
 </div>
 
@@ -297,7 +340,6 @@
     document.getElementById(id).classList.add('active');
   }
 
-  // enhanced addMessage that supports photo messages
   function addMessage(text, type = 'system', sender = '', isPhoto = false) {
     const msgs = document.getElementById('messages');
     const div = document.createElement('div');
@@ -307,7 +349,7 @@
       const photoDiv = document.createElement('div');
       photoDiv.className = 'photo-content';
       const img = document.createElement('img');
-      img.src = text; // data URL
+      img.src = text; // text contains the data URL
       photoDiv.appendChild(img);
       div.appendChild(photoDiv);
     } else {
@@ -364,9 +406,8 @@
     showScreen('searching');
   }
 
-  function requestPhoto() {
-    socket.emit('requestPhoto');
-    addMessage('You requested a photo.', 'system');
+  function triggerPhotoUpload() {
+    document.getElementById('fileInput').click();
   }
 
   function openReport()  { document.getElementById('reportModal').classList.add('open'); }
@@ -381,16 +422,14 @@
     showScreen('searching');
   }
 
-  // ── Photo upload from gallery (open file picker) ─────────────
-  const fileInput = document.getElementById('fileInput');
-  fileInput.addEventListener('change', (e) => {
+  // ── Photo Upload ─────────────────────────────────────────────
+  document.getElementById('fileInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       alert('Photo is too large (max 5MB)');
-      e.target.value = '';
       return;
     }
 
@@ -419,8 +458,11 @@
   });
 
   // ── Socket events ────────────────────────────────────────────
-  socket.on('onlineCount', (count) => {
-    document.getElementById('onlineCount').textContent = `● ${count} online`;
+  socket.on('onlineStats', (stats) => {
+    document.getElementById('totalOnline').textContent = stats.total;
+    document.getElementById('maleOnline').textContent = stats.male;
+    document.getElementById('femaleOnline').textContent = stats.female;
+    document.getElementById('otherOnline').textContent = stats.other;
   });
 
   socket.on('searching', () => {
@@ -446,7 +488,7 @@
     document.getElementById('typingIndicator').textContent = '';
   });
 
-  // When a photo is requested by partner, show a system message with a "Choose file" button
+  // When someone requests a photo, show a system message with a Choose file button
   socket.on('photoRequested', (name) => {
     const msgs = document.getElementById('messages');
     const div = document.createElement('div');
@@ -460,7 +502,10 @@
     btn.className = 'btn btn-sm';
     btn.textContent = 'Choose file';
     btn.style.marginTop = '8px';
-    btn.onclick = () => fileInput.click();
+    btn.onclick = () => {
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) fileInput.click();
+    };
     div.appendChild(btn);
 
     msgs.appendChild(div);
