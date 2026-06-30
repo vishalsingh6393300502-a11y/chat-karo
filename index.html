@@ -28,10 +28,32 @@
       padding: 12px 16px;
       background: #1a1a2e;
       border-bottom: 1px solid #2a2a4a;
+      flex-wrap: wrap;
+      gap: 12px;
     }
     header h1 { font-size: 1.2rem; color: #7b8cde; }
     header .subtitle { font-size: 0.65rem; color: #5b9cff; font-weight: 400; letter-spacing: 0.5px; }
-    #onlineCount { font-size: 0.8rem; color: #6bcb77; }
+    
+    #onlineStats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: #2a2a4a;
+      border-radius: 4px;
+    }
+    .stat-label { color: #aaa; font-weight: 500; }
+    .stat-count { color: #6bcb77; font-weight: 600; }
+    .stat-male { color: #5b9cff; }
+    .stat-female { color: #ff69b4; }
+    .stat-other { color: #ffa500; }
 
     /* ── Screens ── */
     .screen { display: none; width: 100%; max-width: 640px; flex: 1; flex-direction: column; }
@@ -201,6 +223,8 @@
 
     @media (max-width: 480px) {
       header h1 { font-size: 1rem; }
+      #onlineStats { font-size: 0.7rem; gap: 8px; }
+      .stat-item { padding: 3px 6px; }
       .msg { max-width: 88%; }
       .photo-content { max-width: 150px; }
     }
@@ -213,7 +237,24 @@
     <h1>🔵 Chat Karo</h1>
     <span class="subtitle">made by vishal</span>
   </div>
-  <span id="onlineCount">● 0 online</span>
+  <div id="onlineStats">
+    <div class="stat-item">
+      <span class="stat-label">👥 Total:</span>
+      <span class="stat-count" id="totalOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-male">♂ Male:</span>
+      <span class="stat-count stat-male" id="maleOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-female">♀ Female:</span>
+      <span class="stat-count stat-female" id="femaleOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-other">⚬ Other:</span>
+      <span class="stat-count stat-other" id="otherOnline">0</span>
+    </div>
+  </div>
 </header>
 
 <!-- ── Landing Screen ── -->
@@ -417,8 +458,11 @@
   });
 
   // ── Socket events ────────────────────────────────────────────
-  socket.on('onlineCount', (count) => {
-    document.getElementById('onlineCount').textContent = `● ${count} online`;
+  socket.on('onlineStats', (stats) => {
+    document.getElementById('totalOnline').textContent = stats.total;
+    document.getElementById('maleOnline').textContent = stats.male;
+    document.getElementById('femaleOnline').textContent = stats.female;
+    document.getElementById('otherOnline').textContent = stats.other;
   });
 
   socket.on('searching', () => {
