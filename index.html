@@ -128,6 +128,20 @@
     .msg.theirs  { align-self: flex-start; background: #2a2a3e; color: #e0e0e0; border-bottom-left-radius: 3px; }
     .msg.system  { align-self: center; background: transparent; color: #888; font-size: 0.8rem; font-style: italic; }
     .msg .sender { font-size: 0.75rem; opacity: 0.7; margin-bottom: 3px; }
+    
+    /* Photo message styling */
+    .msg.photo-mine { max-width: auto; padding: 0; background: transparent; }
+    .msg.photo-theirs { max-width: auto; padding: 0; background: transparent; }
+    .photo-content {
+      max-width: 200px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .photo-content img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
     #typingIndicator { padding: 4px 16px; font-size: 0.8rem; color: #888; min-height: 22px; }
 
@@ -150,6 +164,8 @@
       resize: none;
     }
     #msgInput:focus { border-color: #7b8cde; }
+    
+    #fileInput { display: none; }
 
     /* ── Report modal ── */
     #reportModal {
@@ -185,6 +201,7 @@
     @media (max-width: 480px) {
       header h1 { font-size: 1rem; }
       .msg { max-width: 88%; }
+      .photo-content { max-width: 150px; }
     }
   </style>
 </head>
@@ -234,7 +251,7 @@
   <div id="chatHeader">
     <div id="partnerInfo">Chatting with <span id="partnerName">—</span></div>
     <div class="chat-actions">
-      <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="requestPhoto()">📷 Photo</button>
+      <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="triggerPhotoUpload()">📷 Photo</button>
       <button class="btn btn-danger btn-sm" onclick="openReport()">🚩 Report</button>
       <button class="btn btn-success btn-sm" onclick="newChat()">Next →</button>
     </div>
@@ -246,6 +263,7 @@
   <div id="inputArea">
     <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
     <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    <input type="file" id="fileInput" accept="image/*" />
   </div>
 </div>
 
@@ -277,17 +295,29 @@
     document.getElementById(id).classList.add('active');
   }
 
-  function addMessage(text, type = 'system', sender = '') {
+  function addMessage(text, type = 'system', sender = '', isPhoto = false) {
     const msgs = document.getElementById('messages');
     const div = document.createElement('div');
-    div.className = `msg ${type}`;
-    if (sender) {
-      const s = document.createElement('div');
-      s.className = 'sender';
-      s.textContent = sender;
-      div.appendChild(s);
+    
+    if (isPhoto) {
+      div.className = `msg photo-${type}`;
+      const photoDiv = document.createElement('div');
+      photoDiv.className = 'photo-content';
+      const img = document.createElement('img');
+      img.src = text; // text contains the data URL
+      photoDiv.appendChild(img);
+      div.appendChild(photoDiv);
+    } else {
+      div.className = `msg ${type}`;
+      if (sender) {
+        const s = document.createElement('div');
+        s.className = 'sender';
+        s.textContent = sender;
+        div.appendChild(s);
+      }
+      div.appendChild(document.createTextNode(text));
     }
-    div.appendChild(document.createTextNode(text));
+    
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -331,9 +361,8 @@
     showScreen('searching');
   }
 
-  function requestPhoto() {
-    socket.emit('requestPhoto');
-    addMessage('You requested a photo.', 'system');
+  function triggerPhotoUpload() {
+    document.getElementById('fileInput').click();
   }
 
   function openReport()  { document.getElementById('reportModal').classList.add('open'); }
@@ -347,6 +376,29 @@
     addMessage('User reported. Finding a new match…', 'system');
     showScreen('searching');
   }
+
+  // ── Photo Upload ─────────────────────────────────────────────
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Photo is too large (max 5MB)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target.result;
+      socket.emit('sendPhoto', base64);
+      addMessage(base64, 'mine', '', true);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input for re-upload
+    e.target.value = '';
+  });
 
   // ── Typing ──────────────────────────────────────────────────
   let typingTimer;
@@ -390,6 +442,10 @@
 
   socket.on('photoRequested', (name) => {
     addMessage(`${name} is requesting a photo.`, 'system');
+  });
+
+  socket.on('receivePhoto', ({ name, photo }) => {
+    addMessage(photo, 'theirs', `${name} sent a photo`, true);
   });
 
   socket.on('partnerDisconnected', () => {
