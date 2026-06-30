@@ -129,6 +129,20 @@
     .msg.theirs  { align-self: flex-start; background: #2a2a3e; color: #e0e0e0; border-bottom-left-radius: 3px; }
     .msg.system  { align-self: center; background: transparent; color: #888; font-size: 0.8rem; font-style: italic; }
     .msg .sender { font-size: 0.75rem; opacity: 0.7; margin-bottom: 3px; }
+    
+    /* Photo message styling */
+    .msg.photo-mine { max-width: auto; padding: 0; background: transparent; }
+    .msg.photo-theirs { max-width: auto; padding: 0; background: transparent; }
+    .photo-content {
+      max-width: 200px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .photo-content img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
     #typingIndicator { padding: 4px 16px; font-size: 0.8rem; color: #888; min-height: 22px; }
 
@@ -250,6 +264,8 @@
   <div id="inputArea">
     <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
     <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    <!-- Hidden file input to open the gallery when needed -->
+    <input type="file" id="fileInput" accept="image/*" style="display:none" />
   </div>
 </div>
 
@@ -281,17 +297,30 @@
     document.getElementById(id).classList.add('active');
   }
 
-  function addMessage(text, type = 'system', sender = '') {
+  // enhanced addMessage that supports photo messages
+  function addMessage(text, type = 'system', sender = '', isPhoto = false) {
     const msgs = document.getElementById('messages');
     const div = document.createElement('div');
-    div.className = `msg ${type}`;
-    if (sender) {
-      const s = document.createElement('div');
-      s.className = 'sender';
-      s.textContent = sender;
-      div.appendChild(s);
+    
+    if (isPhoto) {
+      div.className = `msg photo-${type}`;
+      const photoDiv = document.createElement('div');
+      photoDiv.className = 'photo-content';
+      const img = document.createElement('img');
+      img.src = text; // data URL
+      photoDiv.appendChild(img);
+      div.appendChild(photoDiv);
+    } else {
+      div.className = `msg ${type}`;
+      if (sender) {
+        const s = document.createElement('div');
+        s.className = 'sender';
+        s.textContent = sender;
+        div.appendChild(s);
+      }
+      div.appendChild(document.createTextNode(text));
     }
-    div.appendChild(document.createTextNode(text));
+    
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -352,6 +381,31 @@
     showScreen('searching');
   }
 
+  // ── Photo upload from gallery (open file picker) ─────────────
+  const fileInput = document.getElementById('fileInput');
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Photo is too large (max 5MB)');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target.result;
+      socket.emit('sendPhoto', base64);
+      addMessage(base64, 'mine', '', true);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input for re-upload
+    e.target.value = '';
+  });
+
   // ── Typing ──────────────────────────────────────────────────
   let typingTimer;
   document.getElementById('msgInput').addEventListener('input', () => {
@@ -392,8 +446,25 @@
     document.getElementById('typingIndicator').textContent = '';
   });
 
+  // When a photo is requested by partner, show a system message with a "Choose file" button
   socket.on('photoRequested', (name) => {
-    addMessage(`${name} is requesting a photo.`, 'system');
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg system';
+
+    const txt = document.createElement('div');
+    txt.textContent = `${name} requested a photo.`;
+    div.appendChild(txt);
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm';
+    btn.textContent = 'Choose file';
+    btn.style.marginTop = '8px';
+    btn.onclick = () => fileInput.click();
+    div.appendChild(btn);
+
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
   });
 
   socket.on('receivePhoto', ({ name, photo }) => {
