@@ -73,6 +73,17 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ── Send Photo (forward base64 image to partner) ──────────
+  socket.on('sendPhoto', (base64) => {
+    const partnerId = connections[socket.id];
+    if (!partnerId) return;
+    // Optionally: server-side validation of size/type can be added here
+    io.to(partnerId).emit('receivePhoto', {
+      name: socket.userData && socket.userData.name ? socket.userData.name : 'Anonymous',
+      photo: base64
+    });
+  });
+
   // ── New Chat ─────────────────────────────────────────────
   socket.on('newChat', () => {
     endCurrentChat(socket, true); // notify partner
@@ -81,7 +92,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ── Report ───────────────────────────────────────────────
+  // ── Report ─────────────────────────────────��─────────────
   socket.on('report', ({ reason }) => {
     const partnerId = connections[socket.id];
     if (partnerId) {
