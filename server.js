@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  // ── New Chat ─────────────────────────────────────────────
+  // ── New Chat ────────────────────────────────────────────��
   socket.on('newChat', () => {
     endCurrentChat(socket, true); // notify partner
     if (socket.userData) {
@@ -132,9 +132,15 @@ io.on('connection', (socket) => {
 
 // ============================================================
 //  SMART MATCHING ALGORITHM
-//  1. Males ↔ Females (primary)
-//  2. Extra Males ↔ Males (if females < males)
-//  3. Others ↔ Others (isolated queue)
+//  
+//  Males & Females:
+//  - If both available: match Male ↔ Female
+//  - If only males left: match Male ↔ Male
+//  - If only females left: match Female ↔ Female
+//
+//  Others:
+//  - Only match with other "other" users
+//  - Never cross-mix with males/females
 // ============================================================
 function matchUser(socket) {
   if (!socket.userData) return;
@@ -152,14 +158,14 @@ function matchUser(socket) {
   let partner = null;
 
   if (gender === 'male') {
-    // Male: try female first, then male
+    // Male: prefer female first, then male
     if (waitingUsers.female.length > 0) {
       partner = waitingUsers.female.shift();
     } else if (waitingUsers.male.length > 0) {
       partner = waitingUsers.male.shift();
     }
   } else if (gender === 'female') {
-    // Female: try male first, then female
+    // Female: prefer male first, then female
     if (waitingUsers.male.length > 0) {
       partner = waitingUsers.male.shift();
     } else if (waitingUsers.female.length > 0) {
