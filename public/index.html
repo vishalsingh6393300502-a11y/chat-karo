@@ -30,6 +30,7 @@
       border-bottom: 1px solid #2a2a4a;
     }
     header h1 { font-size: 1.2rem; color: #7b8cde; }
+    header .subtitle { font-size: 0.65rem; color: #5b9cff; font-weight: 400; letter-spacing: 0.5px; }
     #onlineCount { font-size: 0.8rem; color: #6bcb77; }
 
     /* ── Screens ── */
@@ -191,7 +192,10 @@
 <body>
 
 <header>
-  <h1>🔵 Chat Karo</h1>
+  <div>
+    <h1>🔵 Chat Karo</h1>
+    <span class="subtitle">made by vishal</span>
+  </div>
   <span id="onlineCount">● 0 online</span>
 </header>
 
@@ -390,6 +394,10 @@
 
   socket.on('photoRequested', (name) => {
     addMessage(`${name} is requesting a photo.`, 'system');
+  });
+
+  socket.on('receivePhoto', ({ name, photo }) => {
+    addMessage(photo, 'theirs', `${name} sent a photo`, true);
   });
 
   socket.on('partnerDisconnected', () => {
