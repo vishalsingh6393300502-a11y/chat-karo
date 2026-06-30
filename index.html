@@ -267,7 +267,7 @@
   <div id="inputArea">
     <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
     <button class="btn btn-primary" onclick="sendMessage()">Send</button>
-    <input type="file" id="fileInput" accept="image/*" />
+    <input type="file" id="fileInput" accept="image/*" capture="environment" />
   </div>
 </div>
 
@@ -444,8 +444,28 @@
     document.getElementById('typingIndicator').textContent = '';
   });
 
+  // When someone requests a photo, show a system message with a Choose file button
   socket.on('photoRequested', (name) => {
-    addMessage(`${name} is requesting a photo.`, 'system');
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg system';
+
+    const txt = document.createElement('div');
+    txt.textContent = `${name} requested a photo.`;
+    div.appendChild(txt);
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm';
+    btn.textContent = 'Choose file';
+    btn.style.marginTop = '8px';
+    btn.onclick = () => {
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) fileInput.click();
+    };
+    div.appendChild(btn);
+
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
   });
 
   socket.on('receivePhoto', ({ name, photo }) => {
