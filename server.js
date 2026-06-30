@@ -19,27 +19,34 @@ app.get('/', (req, res) => {
 });
 
 // ============================================================
-//  GENDER-BASED MATCHING QUEUES
-//  waitingUsers.male  → males waiting for a partner
-//  waitingUsers.female → females waiting for a partner
+//  GENDER-BASED MATCHING QUEUES & ONLINE TRACKING
+//  waitingUsers.male    → males waiting for a partner
+//  waitingUsers.female  → females waiting for a partner
+//  waitingUsers.other   → other gender waiting for a partner
 // ============================================================
-const waitingUsers = { male: [], female: [] };
+const waitingUsers = { male: [], female: [], other: [] };
+const onlineUsers = { male: 0, female: 0, other: 0 };
 
 // socketId → partnerId (active chat pairs)
 const connections = {};
 
-// Track online count
-let onlineCount = 0;
+// socketId → user gender (to track online users)
+const userGenders = {};
 
 io.on('connection', (socket) => {
-  onlineCount++;
-  io.emit('onlineCount', onlineCount);
-  console.log(`[+] Connected: ${socket.id} | Online: ${onlineCount}`);
+  // Increment online count on connection
+  console.log(`[+] Connected: ${socket.id}`);
 
   // ── Start Search ──────────────────────────────────────────
   socket.on('startSearch', ({ name, gender }) => {
     socket.userData = { name: sanitize(name), gender };
     socket.searching = true;
+    
+    // Track online users by gender
+    userGenders[socket.id] = gender;
+    onlineUsers[gender]++;
+    broadcastOnlineStats();
+    
     matchUser(socket);
   });
 
@@ -92,7 +99,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ── Report ─────────────────────────────────��─────────────
+  // ── Report ──────────────────────────────────────────────
   socket.on('report', ({ reason }) => {
     const partnerId = connections[socket.id];
     if (partnerId) {
@@ -109,47 +116,60 @@ io.on('connection', (socket) => {
 
   // ── Disconnect ───────────────────────────────────────────
   socket.on('disconnect', () => {
-    onlineCount = Math.max(0, onlineCount - 1);
-    io.emit('onlineCount', onlineCount);
+    // Update online count
+    if (userGenders[socket.id]) {
+      const gender = userGenders[socket.id];
+      onlineUsers[gender] = Math.max(0, onlineUsers[gender] - 1);
+      delete userGenders[socket.id];
+    }
+    
+    broadcastOnlineStats();
     endCurrentChat(socket, true);
     removeFromQueue(socket);
-    console.log(`[-] Disconnected: ${socket.id} | Online: ${onlineCount}`);
+    console.log(`[-] Disconnected: ${socket.id}`);
   });
 });
 
 // ============================================================
-//  MATCHING ALGORITHM
-//  80% chance → opposite gender
-//  20% chance → same gender (or fallback if no opposite)
+//  SMART MATCHING ALGORITHM
+//  1. Males ↔ Females (primary)
+//  2. Extra Males ↔ Males (if females < males)
+//  3. Others ↔ Others (isolated queue)
 // ============================================================
 function matchUser(socket) {
   if (!socket.userData) return;
 
   const { gender } = socket.userData;
-  const opposite = gender === 'male' ? 'female' : 'male';
 
   // Clean stale sockets from queues
-  waitingUsers.male   = waitingUsers.male.filter(s => s.connected && !connections[s.id]);
-  waitingUsers.female = waitingUsers.female.filter(s => s.connected && !connections[s.id]);
+  ['male', 'female', 'other'].forEach(g => {
+    waitingUsers[g] = waitingUsers[g].filter(s => s.connected && !connections[s.id]);
+  });
 
   // Remove self from any queue first
   removeFromQueue(socket);
 
-  const oppositeQueue = waitingUsers[opposite];
-  const sameQueue     = waitingUsers[gender];
-
   let partner = null;
-  const roll = Math.random(); // 0.0 – 1.0
 
-  if (roll < 0.80 && oppositeQueue.length > 0) {
-    // 80% → opposite gender
-    partner = oppositeQueue.shift();
-  } else if (sameQueue.length > 0) {
-    // 20% (or no opposite available) → same gender
-    partner = sameQueue.shift();
-  } else if (oppositeQueue.length > 0) {
-    // Fallback → opposite gender if same is empty
-    partner = oppositeQueue.shift();
+  if (gender === 'male') {
+    // Male: try female first, then male
+    if (waitingUsers.female.length > 0) {
+      partner = waitingUsers.female.shift();
+    } else if (waitingUsers.male.length > 0) {
+      partner = waitingUsers.male.shift();
+    }
+  } else if (gender === 'female') {
+    // Female: try male first, then female
+    if (waitingUsers.male.length > 0) {
+      partner = waitingUsers.male.shift();
+    } else if (waitingUsers.female.length > 0) {
+      partner = waitingUsers.female.shift();
+    }
+  } else if (gender === 'other') {
+    // Other: only match with other
+    if (waitingUsers.other.length > 0) {
+      partner = waitingUsers.other.shift();
+    }
   }
 
   if (partner) {
@@ -170,7 +190,7 @@ function matchUser(socket) {
     // No match found → add to waiting queue
     waitingUsers[gender].push(socket);
     socket.emit('searching');
-    console.log(`[?] Waiting: ${socket.userData.name}(${gender}) | Queue: M=${waitingUsers.male.length} F=${waitingUsers.female.length}`);
+    console.log(`[?] Waiting: ${socket.userData.name}(${gender}) | Queues: M=${waitingUsers.male.length} F=${waitingUsers.female.length} O=${waitingUsers.other.length}`);
   }
 }
 
@@ -184,7 +204,7 @@ function endCurrentChat(socket, notifyPartner = false) {
 }
 
 function removeFromQueue(socket) {
-  ['male', 'female'].forEach(g => {
+  ['male', 'female', 'other'].forEach(g => {
     const idx = waitingUsers[g].indexOf(socket);
     if (idx !== -1) waitingUsers[g].splice(idx, 1);
   });
@@ -195,6 +215,17 @@ function sanitize(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .substring(0, 300);
+}
+
+function broadcastOnlineStats() {
+  const totalOnline = onlineUsers.male + onlineUsers.female + onlineUsers.other;
+  io.emit('onlineStats', {
+    total: totalOnline,
+    male: onlineUsers.male,
+    female: onlineUsers.female,
+    other: onlineUsers.other
+  });
+  console.log(`[📊] Online: M=${onlineUsers.male} F=${onlineUsers.female} O=${onlineUsers.other} Total=${totalOnline}`);
 }
 
 // ============================================================
