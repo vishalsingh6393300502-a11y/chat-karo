@@ -91,7 +91,47 @@ io.on('connection', (socket) => {
     });
   });
 
-  // ── New Chat ────────────────────────────────────────────��
+  // ── Call signaling & WebRTC relay ────────────────────────
+  socket.on('callRequest', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('incomingCall', { from: socket.userData && socket.userData.name ? socket.userData.name : 'Anonymous' });
+    }
+  });
+
+  socket.on('callResponse', ({ accept }) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      if (accept) {
+        io.to(partnerId).emit('callAccepted');
+      } else {
+        io.to(partnerId).emit('callDeclined');
+      }
+    }
+  });
+
+  socket.on('callEnded', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('callEnded');
+    }
+  });
+
+  // WebRTC SDP/ICE relays
+  socket.on('webrtc-offer', (offer) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('webrtc-offer', offer);
+  });
+  socket.on('webrtc-answer', (answer) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('webrtc-answer', answer);
+  });
+  socket.on('webrtc-ice', (candidate) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('webrtc-ice', candidate);
+  });
+
+  // ── New Chat ────────────────────────────────────────────
   socket.on('newChat', () => {
     endCurrentChat(socket, true); // notify partner
     if (socket.userData) {
@@ -123,6 +163,12 @@ io.on('connection', (socket) => {
       delete userGenders[socket.id];
     }
     
+    // notify partner if any call was active
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('partnerDisconnected');
+    }
+
     broadcastOnlineStats();
     endCurrentChat(socket, true);
     removeFromQueue(socket);
@@ -204,7 +250,7 @@ function endCurrentChat(socket, notifyPartner = false) {
   const partnerId = connections[socket.id];
   if (partnerId) {
     if (notifyPartner) io.to(partnerId).emit('partnerDisconnected');
-    delete connections[partnerId];
+    delete connections[partner.id];
     delete connections[socket.id];
   }
 }
