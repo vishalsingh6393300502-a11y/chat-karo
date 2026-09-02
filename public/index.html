@@ -129,7 +129,7 @@
     }
     #partnerInfo { font-size: 0.95rem; color: #ccc; }
     #partnerInfo span { color: #7b8cde; font-weight: 600; }
-    .chat-actions { display: flex; gap: 8px; }
+    .chat-actions { display: flex; gap: 8px; align-items:center; }
 
     #messages {
       flex: 1;
@@ -189,37 +189,26 @@
     #msgInput:focus { border-color: #7b8cde; }
     
     #fileInput { display: none; }
+    #cameraInput { display: none; }
 
-    /* ── Report modal ── */
-    #reportModal {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-    #reportModal.open { display: flex; }
-    .modal-box {
-      background: #1e1e2e;
-      border-radius: 12px;
-      padding: 24px;
-      width: 90%;
-      max-width: 360px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .modal-box h3 { color: #e05c5c; }
-    .modal-box select {
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
+    /* Photo menu */
+    .photo-menu {
+      position: absolute;
+      right: 8px;
+      top: 56px;
       background: #111;
-      color: #e0e0e0;
-      font-size: 0.95rem;
+      border: 1px solid #2a2a4a;
+      padding: 8px;
+      border-radius: 8px;
+      display: none;
+      z-index: 120;
     }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .photo-menu.open { display: block; }
+
+    /* Call modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 200; }
+    .modal-overlay.open { display: flex; }
+    .modal-card { background:#111; padding:16px; border-radius:12px; width:90%; max-width:360px; }
 
     @media (max-width: 480px) {
       header h1 { font-size: 1rem; }
@@ -256,6 +245,40 @@
     </div>
   </div>
 </header>
+
+<!-- Photo menu (opened from chat header) -->
+<div id="photoMenu" class="photo-menu" aria-hidden="true">
+  <button class="btn btn-sm" onclick="openCameraCapture()">📸 Camera</button>
+  <button class="btn btn-sm" onclick="triggerGalleryUpload()">🖼️ Gallery</button>
+</div>
+
+<!-- Camera modal for desktop capture -->
+<div id="cameraModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card">
+    <h3 style="color:#fff">Take a photo</h3>
+    <video id="cameraVideo" autoplay playsinline style="width:100%;border-radius:8px;background:#000"></video>
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeCameraCapture()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="captureFromCamera()">Capture</button>
+    </div>
+  </div>
+</div>
+
+<!-- Call modal -->
+<div id="callModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card" id="callCard">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:700;color:#fff" id="incomingCaller">Incoming call</div>
+        <div style="color:#aac;font-size:0.9rem" id="incomingInfo">Someone is calling you</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-danger btn-sm" onclick="declineCall()">Decline</button>
+        <button class="btn btn-success btn-sm" onclick="acceptCall()">Accept</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ── Landing Screen ── -->
 <div id="landing" class="screen active">
@@ -296,9 +319,10 @@
   <div id="chatHeader">
     <div id="partnerInfo">Chatting with <span id="partnerName">—</span></div>
     <div class="chat-actions">
-      <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="triggerPhotoUpload()">📷 Photo</button>
-      <button class="btn btn-danger btn-sm" onclick="openReport()">🚩 Report</button>
+      <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="togglePhotoMenu(event)">📷</button>
       <button class="btn btn-success btn-sm" onclick="newChat()">Next →</button>
+      <button id="callBtn" class="btn btn-sm" title="Call" style="background:#2a2a4a;color:#cce" onclick="triggerCall()">📞</button>
+      <button class="btn btn-danger btn-sm" onclick="openReport()">🚩</button>
     </div>
   </div>
 
@@ -308,7 +332,8 @@
   <div id="inputArea">
     <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
     <button class="btn btn-primary" onclick="sendMessage()">Send</button>
-    <input type="file" id="fileInput" accept="image/*" capture="environment" />
+    <input type="file" id="fileInput" accept="image/*" />
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" />
   </div>
 </div>
 
@@ -334,7 +359,51 @@
 <script>
   const socket = io();
 
-  // ── UI helpers ──────────────────────────────────────────────
+  // ── Ringtone (WebAudio) - gentle plucked tone loop ──
+  let audioCtx, ringtoneOsc, ringtoneGain, ringtoneInterval;
+  function ensureAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  }
+  function playRingtone() {
+    ensureAudio();
+    stopRingtone();
+    ringtoneGain = audioCtx.createGain();
+    ringtoneGain.gain.value = 0.03; // low, pleasant
+    ringtoneGain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    ringtoneOsc = audioCtx.createOscillator();
+    ringtoneOsc.type = 'sine';
+    ringtoneOsc.frequency.value = 420;
+    ringtoneOsc.connect(ringtoneGain);
+    ringtoneOsc.start(now);
+    ringtoneOsc.stop(now + 1.2);
+
+    ringtoneInterval = setInterval(() => {
+      try{ if (ringtoneOsc) ringtoneOsc.disconnect(); }catch(e){}
+      ringtoneOsc = audioCtx.createOscillator();
+      ringtoneOsc.type = 'sine';
+      ringtoneOsc.frequency.value = 420;
+      ringtoneOsc.connect(ringtoneGain);
+      ringtoneOsc.start();
+      setTimeout(()=>{ try{ ringtoneOsc.stop(); }catch(e){} }, 1200);
+    }, 2000);
+
+    // also vibrate a short pattern while ringing if supported
+    try { if (navigator.vibrate) navigator.vibrate([200,150,200]); } catch(e){}
+  }
+  function stopRingtone() {
+    try { if (ringtoneOsc) ringtoneOsc.stop(); } catch(e){}
+    try { if (ringtoneOsc) ringtoneOsc.disconnect(); } catch(e){}
+    if (ringtoneInterval) { clearInterval(ringtoneInterval); ringtoneInterval = null; }
+    ringtoneOsc = null;
+    if (ringtoneGain) { try{ ringtoneGain.disconnect(); }catch(e){} ringtoneGain = null; }
+    try { if (navigator.vibrate) navigator.vibrate(0); } catch(e){}
+  }
+
+  // ── UI helpers ──
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -350,6 +419,9 @@
       photoDiv.className = 'photo-content';
       const img = document.createElement('img');
       img.src = text; // text contains the data URL
+      // allow viewing full size in new tab
+      img.style.cursor = 'pointer';
+      img.onclick = () => { window.open(text, '_blank'); };
       photoDiv.appendChild(img);
       div.appendChild(photoDiv);
     } else {
@@ -372,7 +444,7 @@
     document.getElementById('typingIndicator').textContent = '';
   }
 
-  // ── Actions ─────────────────────────────────────────────────
+  // ── Actions ──
   function startSearch() {
     const name = document.getElementById('nameInput').value.trim();
     const gender = document.getElementById('genderSelect').value;
@@ -406,10 +478,6 @@
     showScreen('searching');
   }
 
-  function triggerPhotoUpload() {
-    document.getElementById('fileInput').click();
-  }
-
   function openReport()  { document.getElementById('reportModal').classList.add('open'); }
   function closeReport() { document.getElementById('reportModal').classList.remove('open'); }
 
@@ -422,30 +490,127 @@
     showScreen('searching');
   }
 
-  // ── Photo Upload ─────────────────────────────────────────────
-  document.getElementById('fileInput').addEventListener('change', (e) => {
+  // ── Photo menu handling ──
+  function togglePhotoMenu(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('photoMenu');
+    menu.classList.toggle('open');
+    menu.setAttribute('aria-hidden', menu.classList.contains('open') ? 'false' : 'true');
+  }
+  document.body.addEventListener('click', () => {
+    const menu = document.getElementById('photoMenu');
+    menu.classList.remove('open');
+    menu.setAttribute('aria-hidden', 'true');
+  });
+
+  function triggerGalleryUpload() {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.click();
+  }
+
+  // Camera flow: prefer getUserMedia capture for desktop and fallback to cameraInput for mobile
+  let cameraStream;
+  async function openCameraCapture() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        const video = document.getElementById('cameraVideo');
+        video.srcObject = cameraStream;
+        document.getElementById('cameraModal').classList.add('open');
+        document.getElementById('cameraModal').setAttribute('aria-hidden', 'false');
+        return;
+      } catch (err) {
+        // fallthrough to mobile input
+      }
+    }
+    // fallback to mobile camera input if available
+    const cameraInput = document.getElementById('cameraInput');
+    if (cameraInput) cameraInput.click();
+  }
+  function closeCameraCapture() {
+    document.getElementById('cameraModal').classList.remove('open');
+    document.getElementById('cameraModal').setAttribute('aria-hidden', 'true');
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+  }
+  function captureFromCamera() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 1024;
+    canvas.height = video.videoHeight || 768;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(async (blob) => {
+      closeCameraCapture();
+      const file = new File([blob], 'capture.jpg', { type: blob.type });
+      await processAndSendPhoto(file);
+    }, 'image/jpeg', 0.9);
+  }
+
+  // ── Photo Upload & Compression ──
+  async function processAndSendPhoto(file) {
+    if (!file) return;
+    // allow up to 8MB before compression; we'll compress aggressively for faster transfer
+    const dataUrl = await compressImageFile(file, 1024, 0.7);
+    if (!dataUrl) { alert('Failed to process image'); return; }
+
+    // Send smaller base64 over socket
+    socket.emit('sendPhoto', dataUrl);
+    addMessage(dataUrl, 'mine', '', true);
+  }
+
+  function compressImageFile(file, maxDim = 1024, quality = 0.7) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > height && width > maxDim) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else if (height > width && height > maxDim) {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          } else if (width > maxDim) {
+            width = maxDim; height = Math.round(height * (maxDim / width));
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => resolve(null);
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('fileInput').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Photo is too large (max 5MB)');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target.result;
-      socket.emit('sendPhoto', base64);
-      addMessage(base64, 'mine', '', true);
-    };
-    reader.readAsDataURL(file);
-
-    // Reset input for re-upload
+    await processAndSendPhoto(file);
+    e.target.value = '';
+  });
+  document.getElementById('cameraInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    await processAndSendPhoto(file);
     e.target.value = '';
   });
 
-  // ── Typing ──────────────────────────────────────────────────
+  // ── Typing ──
   let typingTimer;
   document.getElementById('msgInput').addEventListener('input', () => {
     socket.emit('typing');
@@ -457,7 +622,61 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 
-  // ── Socket events ────────────────────────────────────────────
+  // ── Call (signaling only) ──
+  let currentCall = null; // {state: 'outgoing'|'incoming'|'active'}
+  let outgoingTimeout = null;
+  function triggerCall() {
+    // emit a call request; server should forward to partner
+    socket.emit('callRequest');
+    currentCall = { state: 'outgoing' };
+    addMessage('Calling… 🎧', 'system');
+    // play a short ring locally while outgoing
+    playRingtone();
+    // stop after 20s if no answer
+    if (outgoingTimeout) clearTimeout(outgoingTimeout);
+    outgoingTimeout = setTimeout(() => { if (currentCall && currentCall.state === 'outgoing') { stopRingtone(); addMessage('Call unanswered', 'system'); currentCall=null; } }, 20000);
+  }
+
+  socket.on('incomingCall', ({ from }) => {
+    currentCall = { state: 'incoming', from };
+    document.getElementById('incomingCaller').textContent = `${from} is calling`;
+    document.getElementById('incomingInfo').textContent = 'Incoming call';
+    document.getElementById('callModal').classList.add('open');
+    document.getElementById('callModal').setAttribute('aria-hidden', 'false');
+    playRingtone();
+    // Vibrate the device on incoming call (short pleasant pattern)
+    try { if (navigator.vibrate) navigator.vibrate([300,150,300]); } catch(e){}
+  });
+
+  function acceptCall() {
+    if (!currentCall) return;
+    socket.emit('callResponse', { accept: true });
+    document.getElementById('callModal').classList.remove('open');
+    stopRingtone();
+    currentCall.state = 'active';
+    addMessage('Call started (signaling only).', 'system');
+  }
+  function declineCall() {
+    if (!currentCall) return;
+    socket.emit('callResponse', { accept: false });
+    document.getElementById('callModal').classList.remove('open');
+    stopRingtone();
+    addMessage('Call declined', 'system');
+    currentCall = null;
+  }
+
+  socket.on('callAccepted', () => {
+    stopRingtone();
+    addMessage('Call accepted — starting (signaling)...', 'system');
+    currentCall = { state: 'active' };
+  });
+  socket.on('callDeclined', () => {
+    stopRingtone();
+    addMessage('Call declined by partner', 'system');
+    currentCall = null;
+  });
+
+  // ── Socket events ──
   socket.on('onlineStats', (stats) => {
     document.getElementById('totalOnline').textContent = stats.total;
     document.getElementById('maleOnline').textContent = stats.male;
@@ -465,9 +684,7 @@
     document.getElementById('otherOnline').textContent = stats.other;
   });
 
-  socket.on('searching', () => {
-    showScreen('searching');
-  });
+  socket.on('searching', () => { showScreen('searching'); });
 
   socket.on('chatConnected', ({ partnerName, partnerGender }) => {
     clearMessages();
@@ -476,19 +693,11 @@
     addMessage(`Connected with ${partnerName}. Say hi! 👋`, 'system');
   });
 
-  socket.on('receiveMessage', ({ name, message }) => {
-    addMessage(message, 'theirs', name);
-  });
+  socket.on('receiveMessage', ({ name, message }) => { addMessage(message, 'theirs', name); });
 
-  socket.on('partnerTyping', (name) => {
-    document.getElementById('typingIndicator').textContent = `${name} is typing…`;
-  });
+  socket.on('partnerTyping', (name) => { document.getElementById('typingIndicator').textContent = `${name} is typing…`; });
+  socket.on('partnerStopTyping', () => { document.getElementById('typingIndicator').textContent = ''; });
 
-  socket.on('partnerStopTyping', () => {
-    document.getElementById('typingIndicator').textContent = '';
-  });
-
-  // When someone requests a photo, show a system message with a Choose file button
   socket.on('photoRequested', (name) => {
     const msgs = document.getElementById('messages');
     const div = document.createElement('div');
@@ -502,19 +711,14 @@
     btn.className = 'btn btn-sm';
     btn.textContent = 'Choose file';
     btn.style.marginTop = '8px';
-    btn.onclick = () => {
-      const fileInput = document.getElementById('fileInput');
-      if (fileInput) fileInput.click();
-    };
+    btn.onclick = () => { const fileInput = document.getElementById('fileInput'); if (fileInput) fileInput.click(); };
     div.appendChild(btn);
 
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   });
 
-  socket.on('receivePhoto', ({ name, photo }) => {
-    addMessage(photo, 'theirs', `${name} sent a photo`, true);
-  });
+  socket.on('receivePhoto', ({ name, photo }) => { addMessage(photo, 'theirs', `${name} sent a photo`, true); });
 
   socket.on('partnerDisconnected', () => {
     addMessage('Partner disconnected. Click "Next →" to find someone new.', 'system');
