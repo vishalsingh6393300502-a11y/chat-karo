@@ -18,7 +18,6 @@
       justify-content: center;
     }
 
-    /* ── Header ── */
     header {
       width: 100%;
       max-width: 640px;
@@ -33,7 +32,7 @@
     }
     header h1 { font-size: 1.2rem; color: #7b8cde; }
     header .subtitle { font-size: 0.65rem; color: #5b9cff; font-weight: 400; letter-spacing: 0.5px; }
-    
+
     #onlineStats {
       display: flex;
       gap: 12px;
@@ -55,38 +54,9 @@
     .stat-female { color: #ff69b4; }
     .stat-other { color: #ffa500; }
 
-    /* ── Photo / modal / call UI */
-    .photo-menu {
-      position: absolute;
-      right: 18px;
-      top: 56px;
-      background: #12121a;
-      border: 1px solid #2a2a4a;
-      padding: 8px;
-      border-radius: 8px;
-      display: none;
-      z-index: 60;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-    }
-    .photo-menu.open { display: block; }
-    .photo-menu button { display:block; width:100%; margin:6px 0; }
-
-    .modal-overlay {
-      display: none; position: fixed; inset: 0; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 80;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-card {
-      background: #1e1e2e; padding: 12px; border-radius: 10px; max-width: 420px; width: 92%;
-    }
-
-    .call-bar { display:flex; gap:8px; align-items:center; }
-    .call-status { color:#9fb3ff; font-weight:600; }
-
-    /* ── Screens ── */
     .screen { display: none; width: 100%; max-width: 640px; flex: 1; flex-direction: column; }
     .screen.active { display: flex; }
 
-    /* ── Landing ── */
     #landing {
       align-items: center;
       justify-content: center;
@@ -94,7 +64,7 @@
       padding: 32px 24px;
     }
     #landing h2 { font-size: 1.6rem; color: #fff; text-align: center; }
-    #landing p  { color: #aaa; text-align: center; font-size: 0.9rem; }
+    #landing p { color: #aaa; text-align: center; font-size: 0.9rem; }
 
     .form-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
     .form-group label { font-size: 0.85rem; color: #aaa; }
@@ -123,18 +93,18 @@
     }
     .btn:hover { opacity: 0.85; }
     .btn-primary { background: #7b8cde; color: #fff; }
-    .btn-danger  { background: #e05c5c; color: #fff; }
+    .btn-danger { background: #e05c5c; color: #fff; }
     .btn-success { background: #6bcb77; color: #111; }
     .btn-sm { padding: 7px 16px; font-size: 0.85rem; }
 
-    /* ── Searching ── */
     #searching {
       align-items: center;
       justify-content: center;
       gap: 16px;
     }
     .spinner {
-      width: 48px; height: 48px;
+      width: 48px;
+      height: 48px;
       border: 4px solid #333;
       border-top-color: #7b8cde;
       border-radius: 50%;
@@ -142,7 +112,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Chat ── */
     #chat { padding: 0; }
     #chatHeader {
       display: flex;
@@ -156,7 +125,7 @@
     }
     #partnerInfo { font-size: 0.95rem; color: #ccc; }
     #partnerInfo span { color: #7b8cde; font-weight: 600; }
-    .chat-actions { display: flex; gap: 8px; }
+    .chat-actions { display: flex; gap: 8px; align-items: center; }
 
     #messages {
       flex: 1;
@@ -174,12 +143,11 @@
       line-height: 1.4;
       word-break: break-word;
     }
-    .msg.mine    { align-self: flex-end; background: #7b8cde; color: #fff; border-bottom-right-radius: 3px; }
-    .msg.theirs  { align-self: flex-start; background: #2a2a3e; color: #e0e0e0; border-bottom-left-radius: 3px; }
-    .msg.system  { align-self: center; background: transparent; color: #888; font-size: 0.8rem; font-style: italic; }
+    .msg.mine { align-self: flex-end; background: #7b8cde; color: #fff; border-bottom-right-radius: 3px; }
+    .msg.theirs { align-self: flex-start; background: #2a2a3e; color: #e0e0e0; border-bottom-left-radius: 3px; }
+    .msg.system { align-self: center; background: transparent; color: #888; font-size: 0.8rem; font-style: italic; }
     .msg .sender { font-size: 0.75rem; opacity: 0.7; margin-bottom: 3px; }
-    
-    /* Photo message styling */
+
     .msg.photo-mine { max-width: auto; padding: 0; background: transparent; }
     .msg.photo-theirs { max-width: auto; padding: 0; background: transparent; }
     .photo-content {
@@ -214,39 +182,21 @@
       resize: none;
     }
     #msgInput:focus { border-color: #7b8cde; }
-    
+
     #fileInput, #cameraInput { display: none; }
 
-    /* ── Report modal ── */
-    #reportModal {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-    #reportModal.open { display: flex; }
-    .modal-box {
-      background: #1e1e2e;
-      border-radius: 12px;
-      padding: 24px;
-      width: 90%;
-      max-width: 360px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .modal-box h3 { color: #e05c5c; }
-    .modal-box select {
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
+    .photo-menu {
+      position: absolute;
+      right: 8px;
+      top: 56px;
       background: #111;
-      color: #e0e0e0;
-      font-size: 0.95rem;
+      border: 1px solid #2a2a4a;
+      padding: 8px;
+      border-radius: 8px;
+      display: none;
+      z-index: 120;
     }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .photo-menu.open { display: block; }
 
     @media (max-width: 480px) {
       header h1 { font-size: 1rem; }
@@ -258,13 +208,11 @@
   </style>
 </head>
 <body>
-
-<header>
-  <div>
-    <h1>🔵 Chat Karo</h1>
-    <span class="subtitle">made by vishal</span>
-  </div>
-  <div style="position:relative">
+  <header>
+    <div>
+      <h1>🔵 Chat Karo</h1>
+      <span class="subtitle">made by vishal</span>
+    </div>
     <div id="onlineStats">
       <div class="stat-item">
         <span class="stat-label">👥 Total:</span>
@@ -283,324 +231,325 @@
         <span class="stat-count stat-other" id="otherOnline">0</span>
       </div>
     </div>
+  </header>
+
+  <div id="photoMenu" class="photo-menu" aria-hidden="true">
+    <button class="btn btn-sm" onclick="openCameraCapture()">📸 Camera</button>
+    <button class="btn btn-sm" onclick="triggerGalleryUpload()">🖼️ Gallery</button>
   </div>
-</header>
 
-<!-- Photo menu (opened from chat header) -->
-<div id="photoMenu" class="photo-menu" aria-hidden="true">
-  <button class="btn btn-sm" onclick="openCameraCapture()">📸 Camera</button>
-  <button class="btn btn-sm" onclick="triggerGalleryUpload()">🖼️ Gallery</button>
-</div>
+  <div id="landing" class="screen active">
+    <h2>Meet Strangers, Chat Freely</h2>
+    <p>Connect with random people instantly. No sign-up needed.</p>
 
-<!-- Camera modal for desktop capture -->
-<div id="cameraModal" class="modal-overlay" aria-hidden="true">
-  <div class="modal-card">
-    <h3>Take a photo</h3>
-    <video id="cameraVideo" autoplay playsinline style="width:100%;border-radius:8px;background:#000"></video>
-    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
-      <button class="btn btn-sm" onclick="closeCameraCapture()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="captureFromCamera()">Capture</button>
+    <div class="form-group">
+      <label for="nameInput">Your Name</label>
+      <input id="nameInput" type="text" placeholder="Enter your name" maxlength="30" />
     </div>
-  </div>
-</div>
 
-<!-- Call modal -->
-<div id="callModal" class="modal-overlay" aria-hidden="true">
-  <div class="modal-card" id="callCard">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-weight:700;color:#fff" id="incomingCaller">Incoming call</div>
-        <div style="color:#aac;font-size:0.9rem" id="incomingInfo">Someone is calling you</div>
+    <div class="form-group">
+      <label for="genderSelect">Your Gender</label>
+      <select id="genderSelect">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <label class="age-check">
+      <input type="checkbox" id="ageCheck" />
+      I confirm I am 18 years or older
+    </label>
+
+    <button class="btn btn-primary" onclick="startSearch()">Start Chatting →</button>
+  </div>
+
+  <div id="searching" class="screen">
+    <div class="spinner"></div>
+    <p>Looking for someone to chat with…</p>
+    <button class="btn btn-danger btn-sm" onclick="cancelSearch()">Cancel</button>
+  </div>
+
+  <div id="chat" class="screen">
+    <div id="chatHeader">
+      <div id="partnerInfo">Chatting with <span id="partnerName">—</span></div>
+      <div class="chat-actions">
+        <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="togglePhotoMenu(event)">📷</button>
+        <button class="btn btn-success btn-sm" onclick="newChat()">Next →</button>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-danger btn-sm" onclick="declineCall()">Decline</button>
-        <button class="btn btn-success btn-sm" onclick="acceptCall()">Accept</button>
-      </div>
     </div>
-  </div>
-</div>
 
-<!-- ── Landing Screen ── -->
-<div id="landing" class="screen active">
-  <h2>Meet Strangers, Chat Freely</h2>
-  <p>Connect with random people instantly. No sign-up needed.</p>
+    <div id="messages"></div>
+    <div id="typingIndicator"></div>
 
-  <div class="form-group">
-    <label for="nameInput">Your Name</label>
-    <input id="nameInput" type="text" placeholder="Enter your name" maxlength="30" />
-  </div>
-
-  <div class="form-group">
-    <label for="genderSelect">Your Gender</label>
-    <select id="genderSelect">
-      <option value="male">Male</option>
-      <option value="female">Female</option>
-      <option value="other">Other</option>
-    </select>
-  </div>
-
-  <label class="age-check">
-    <input type="checkbox" id="ageCheck" />
-    I confirm I am 18 years or older
-  </label>
-
-  <button class="btn btn-primary" onclick="startSearch()">Start Chatting →</button>
-</div>
-
-<!-- ── Searching Screen ── -->
-<div id="searching" class="screen">
-  <div class="spinner"></div>
-  <p>Looking for someone to chat with…</p>
-  <button class="btn btn-danger btn-sm" onclick="cancelSearch()">Cancel</button>
-</div>
-
-<!-- ── Chat Screen ── -->
-<div id="chat" class="screen">
-  <div id="chatHeader">
-    <div id="partnerInfo">Chatting with <span id="partnerName">—</span></div>
-    <div class="chat-actions">
-      <button id="photoBtn" class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="togglePhotoMenu(event)">📷 Photo</button>
-      <button class="btn btn-sm" id="callBtn" title="Call" style="background:#2a2a4a;color:#cfe" onclick="triggerCall()">📞</button>
-      <button class="btn btn-danger btn-sm" onclick="openReport()">🚩 Report</button>
-      <button class="btn btn-success btn-sm" onclick="newChat()">Next →</button>
+    <div id="inputArea">
+      <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
+      <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+      <input type="file" id="fileInput" accept="image/*" />
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" />
     </div>
   </div>
 
-  <div id="messages"></div>
-  <div id="typingIndicator"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
 
-  <!-- audio element for incoming remote audio -->
-  <audio id="remoteAudio" autoplay></audio>
-
-  <div id="inputArea">
-    <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
-    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
-    <input type="file" id="fileInput" accept="image/*" />
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" />
-  </div>
-</div>
-
-<!-- ── Report Modal ── -->
-<div id="reportModal">
-  <div class="modal-box">
-    <h3>🚩 Report User</h3>
-    <select id="reportReason">
-      <option value="spam">Spam</option>
-      <option value="harassment">Harassment</option>
-      <option value="inappropriate">Inappropriate content</option>
-      <option value="underage">Suspected underage</option>
-      <option value="other">Other</option>
-    </select>
-    <div class="modal-actions">
-      <button class="btn btn-sm" style="background:#333;color:#ccc" onclick="closeReport()">Cancel</button>
-      <button class="btn btn-danger btn-sm" onclick="submitReport()">Submit Report</button>
-    </div>
-  </div>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-
-  // Ringtone (WebAudio) - gentle plucked tone loop
-  let audioCtx, ringtoneOsc, ringtoneGain, ringtoneInterval;
-  function ensureAudio() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
     }
-  }
-  function playRingtone() {
-    ensureAudio();
-    stopRingtone();
-    ringtoneGain = audioCtx.createGain();
-    ringtoneGain.gain.value = 0.03; // low, pleasant
-    ringtoneGain.connect(audioCtx.destination);
 
-    const now = audioCtx.currentTime;
-    // create two quick tones to form a simple pleasant ring
-    ringtoneOsc = audioCtx.createOscillator();
-    ringtoneOsc.type = 'sine';
-    ringtoneOsc.frequency.value = 420;
-    ringtoneOsc.connect(ringtoneGain);
-    ringtoneOsc.start(now);
-    // stop after 1.2s, then restart every 2s while ringing
-    ringtoneOsc.stop(now + 1.2);
+    function addMessage(text, type = 'system', sender = '', isPhoto = false) {
+      const msgs = document.getElementById('messages');
+      const div = document.createElement('div');
 
-    ringtoneInterval = setInterval(() => {
-      if (ringtoneOsc) try{ ringtoneOsc.disconnect(); }catch(e){}
-      ringtoneOsc = audioCtx.createOscillator();
-      ringtoneOsc.type = 'sine';
-      ringtoneOsc.frequency.value = 420;
-      ringtoneOsc.connect(ringtoneGain);
-      ringtoneOsc.start();
-      setTimeout(()=>{ try{ ringtoneOsc.stop(); }catch(e){} }, 1200);
-    }, 2000);
-  }
-  function stopRingtone() {
-    try { if (ringtoneOsc) ringtoneOsc.stop(); } catch(e){}
-    try { if (ringtoneOsc) ringtoneOsc.disconnect(); } catch(e){}
-    if (ringtoneInterval) { clearInterval(ringtoneInterval); ringtoneInterval = null; }
-    ringtoneOsc = null;
-    if (ringtoneGain) { try{ ringtoneGain.disconnect(); }catch(e){} ringtoneGain = null; }
-  }
-
-  // ── UI helpers ──────────────────────────────────────────────
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
-  function addMessage(text, type = 'system', sender = '', isPhoto = false) {
-    const msgs = document.getElementById('messages');
-    const div = document.createElement('div');
-    
-    if (isPhoto) {
-      div.className = `msg photo-${type}`;
-      const photoDiv = document.createElement('div');
-      photoDiv.className = 'photo-content';
-      const img = document.createElement('img');
-      img.src = text; // text contains the data URL
-      photoDiv.appendChild(img);
-      div.appendChild(photoDiv);
-    } else {
-      div.className = `msg ${type}`;
-      if (sender) {
-        const s = document.createElement('div');
-        s.className = 'sender';
-        s.textContent = sender;
-        div.appendChild(s);
+      if (isPhoto) {
+        div.className = `msg photo-${type}`;
+        const photoDiv = document.createElement('div');
+        photoDiv.className = 'photo-content';
+        const img = document.createElement('img');
+        img.src = text;
+        img.style.cursor = 'pointer';
+        img.onclick = () => { window.open(text, '_blank'); };
+        photoDiv.appendChild(img);
+        div.appendChild(photoDiv);
+      } else {
+        div.className = `msg ${type}`;
+        if (sender) {
+          const s = document.createElement('div');
+          s.className = 'sender';
+          s.textContent = sender;
+          div.appendChild(s);
+        }
+        div.appendChild(document.createTextNode(text));
       }
-      div.appendChild(document.createTextNode(text));
+
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
     }
-    
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
 
-  function clearMessages() {
-    document.getElementById('messages').innerHTML = '';
-    document.getElementById('typingIndicator').textContent = '';
-  }
+    function clearMessages() {
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('typingIndicator').textContent = '';
+    }
 
-  // ── Actions ─────────────────────────────────────────────────
-  function startSearch() {
-    const name = document.getElementById('nameInput').value.trim();
-    const gender = document.getElementById('genderSelect').value;
-    const ageOk = document.getElementById('ageCheck').checked;
+    function startSearch() {
+      const name = document.getElementById('nameInput').value.trim();
+      const gender = document.getElementById('genderSelect').value;
+      const ageOk = document.getElementById('ageCheck').checked;
 
-    if (!name) { alert('Please enter your name.'); return; }
-    if (!ageOk) { alert('You must confirm you are 18+ to continue.'); return; }
+      if (!name) { alert('Please enter your name.'); return; }
+      if (!ageOk) { alert('You must confirm you are 18+ to continue.'); return; }
 
-    showScreen('searching');
-    socket.emit('startSearch', { name, gender });
-  }
+      showScreen('searching');
+      socket.emit('startSearch', { name, gender });
+    }
 
-  function cancelSearch() {
-    socket.emit('newChat'); // clears queue server-side
-    showScreen('landing');
-  }
+    function cancelSearch() {
+      socket.emit('newChat');
+      showScreen('landing');
+    }
 
-  function sendMessage() {
-    const input = document.getElementById('msgInput');
-    const msg = input.value.trim();
-    if (!msg) return;
-    socket.emit('sendMessage', msg);
-    addMessage(msg, 'mine');
-    input.value = '';
-    socket.emit('stopTyping');
-  }
+    function sendMessage() {
+      const input = document.getElementById('msgInput');
+      const msg = input.value.trim();
+      if (!msg) return;
 
-  function newChat() {
-    clearMessages();
-    socket.emit('newChat');
-    showScreen('searching');
-  }
+      socket.emit('sendMessage', msg);
+      addMessage(msg, 'mine');
+      input.value = '';
+      socket.emit('stopTyping');
+    }
 
-  // Photo menu handling
-  function togglePhotoMenu(e) {
-    e.stopPropagation();
-    const menu = document.getElementById('photoMenu');
-    menu.classList.toggle('open');
-    menu.setAttribute('aria-hidden', menu.classList.contains('open') ? 'false' : 'true');
-  }
-  document.body.addEventListener('click', () => {
-    const menu = document.getElementById('photoMenu');
-    menu.classList.remove('open');
-    menu.setAttribute('aria-hidden', 'true');
-  });
+    function newChat() {
+      clearMessages();
+      socket.emit('newChat');
+      showScreen('searching');
+    }
 
-  function triggerGalleryUpload() {
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput) fileInput.click();
-  }
+    function togglePhotoMenu(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('photoMenu');
+      menu.classList.toggle('open');
+      menu.setAttribute('aria-hidden', menu.classList.contains('open') ? 'false' : 'true');
+    }
+    document.body.addEventListener('click', () => {
+      const menu = document.getElementById('photoMenu');
+      menu.classList.remove('open');
+      menu.setAttribute('aria-hidden', 'true');
+    });
 
-  // Camera flow: prefer getUserMedia capture for desktop and fallback to cameraInput for mobile
-  let cameraStream;
-  async function openCameraCapture() {
-    // Try navigator.mediaDevices first for a nicer experience on desktop
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-        const video = document.getElementById('cameraVideo');
-        video.srcObject = cameraStream;
-        document.getElementById('cameraModal').classList.add('open');
-        document.getElementById('cameraModal').setAttribute('aria-hidden', 'false');
-        return;
-      } catch (err) {
-        // fallthrough to mobile input
+    function triggerGalleryUpload() {
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) fileInput.click();
+    }
+
+    let cameraStream;
+    async function openCameraCapture() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+          const video = document.createElement('video');
+          video.srcObject = cameraStream;
+          video.autoplay = true;
+          video.playsInline = true;
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth || 1024;
+            canvas.height = video.videoHeight || 768;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(async (blob) => {
+              if (blob) {
+                const file = new File([blob], 'capture.jpg', { type: blob.type });
+                await processAndSendPhoto(file);
+              }
+              cameraStream.getTracks().forEach((track) => track.stop());
+              cameraStream = null;
+            }, 'image/jpeg', 0.9);
+          };
+          return;
+        } catch (err) {
+          // fallback to camera input
+        }
       }
+
+      const cameraInput = document.getElementById('cameraInput');
+      if (cameraInput) cameraInput.click();
     }
-    // fallback to mobile camera input if available
-    const cameraInput = document.getElementById('cameraInput');
-    if (cameraInput) cameraInput.click();
-  }
-  function closeCameraCapture() {
-    document.getElementById('cameraModal').classList.remove('open');
-    document.getElementById('cameraModal').setAttribute('aria-hidden', 'true');
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(t => t.stop());
-      cameraStream = null;
+
+    async function processAndSendPhoto(file) {
+      if (!file) return;
+      const dataUrl = await compressImageFile(file, 1024, 0.7);
+      if (!dataUrl) { alert('Failed to process image'); return; }
+
+      socket.emit('sendPhoto', dataUrl);
+      addMessage(dataUrl, 'mine', '', true);
     }
-  }
-  function captureFromCamera() {
-    const video = document.getElementById('cameraVideo');
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob(async (blob) => {
-      closeCameraCapture();
-      // process blob like a file
-      const file = new File([blob], 'capture.jpg', { type: blob.type });
+
+    function compressImageFile(file, maxDim = 1024, quality = 0.7) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > height && width > maxDim) {
+              height = Math.round(height * (maxDim / width));
+              width = maxDim;
+            } else if (height > width && height > maxDim) {
+              width = Math.round(width * (maxDim / height));
+              height = maxDim;
+            } else if (width > maxDim) {
+              width = maxDim;
+              height = Math.round(height * (maxDim / width));
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => resolve(null);
+          img.src = ev.target.result;
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
       await processAndSendPhoto(file);
-    }, 'image/jpeg', 0.9);
-  }
+      e.target.value = '';
+    });
 
-  // ── Photo Upload ─────────────────────────────────────────────
-  async function processAndSendPhoto(file) {
-    if (!file) return;
-    // Validate file size (8MB max before compression)
-    if (file.size > 8 * 1024 * 1024) {
-      // still attempt to compress
-    }
+    document.getElementById('cameraInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      await processAndSendPhoto(file);
+      e.target.value = '';
+    });
 
-    const dataUrl = await compressImageFile(file, 1024, 0.75);
-    if (!dataUrl) { alert('Failed to process image'); return; }
+    let typingTimer;
+    document.getElementById('msgInput').addEventListener('input', () => {
+      socket.emit('typing');
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => socket.emit('stopTyping'), 1500);
+    });
 
-    // Send smaller base64 over socket
-    socket.emit('sendPhoto', dataUrl);
-    addMessage(dataUrl, 'mine', '', true);
-  }
+    document.getElementById('msgInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
-  function compressImageFile(file, maxDim = 1024, quality = 0.75) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-          let { width, height } = img;
-          if (Math.max(width, height) > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = 
+    socket.on('onlineStats', (stats) => {
+      document.getElementById('totalOnline').textContent = stats.total;
+      document.getElementById('maleOnline').textContent = stats.male;
+      document.getElementById('femaleOnline').textContent = stats.female;
+      document.getElementById('otherOnline').textContent = stats.other;
+    });
+
+    socket.on('searching', () => { showScreen('searching'); });
+
+    socket.on('chatConnected', ({ partnerName }) => {
+      clearMessages();
+      document.getElementById('partnerName').textContent = partnerName;
+      showScreen('chat');
+      addMessage(`Connected with ${partnerName}. Say hi! 👋`, 'system');
+    });
+
+    socket.on('receiveMessage', ({ name, message }) => {
+      addMessage(message, 'theirs', name);
+    });
+
+    socket.on('partnerTyping', (name) => {
+      document.getElementById('typingIndicator').textContent = `${name} is typing…`;
+    });
+
+    socket.on('partnerStopTyping', () => {
+      document.getElementById('typingIndicator').textContent = '';
+    });
+
+    socket.on('photoRequested', (name) => {
+      const msgs = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'msg system';
+
+      const txt = document.createElement('div');
+      txt.textContent = `${name} requested a photo.`;
+      div.appendChild(txt);
+
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-sm';
+      btn.textContent = 'Choose file';
+      btn.style.marginTop = '8px';
+      btn.onclick = () => {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) fileInput.click();
+      };
+      div.appendChild(btn);
+
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    });
+
+    socket.on('receivePhoto', ({ name, photo }) => {
+      addMessage(photo, 'theirs', `${name} sent a photo`, true);
+    });
+
+    socket.on('partnerDisconnected', () => {
+      addMessage('Partner disconnected. Click "Next →" to find someone new.', 'system');
+      document.getElementById('typingIndicator').textContent = '';
+    });
+  </script>
+</body>
+</html>
