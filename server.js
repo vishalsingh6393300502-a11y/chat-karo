@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
-const path = require('path');
 const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -11,156 +11,60 @@ const io = new Server(server, {
   pingInterval: 10000
 });
 
-const PORT = process.env.PORT || 3000;
-
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve index.html for the root route (fallback if public/ lookup misses)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', app: 'chat-karo' });
-});
-
+// ============================================================
+//  GENDER-BASED MATCHING QUEUES & ONLINE TRACKING
+//  waitingUsers.male    → males waiting for a partner
+//  waitingUsers.female  → females waiting for a partner
+//  waitingUsers.other   → other gender waiting for a partner
+// ============================================================
 const waitingUsers = { male: [], female: [], other: [] };
 const onlineUsers = { male: 0, female: 0, other: 0 };
-const userGenders = {};
+
+// socketId → partnerId (active chat pairs)
 const connections = {};
-const reports = [];
 
-function sanitize(value) {
-  return String(value ?? '')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/[`]/g, '')
-    .trim()
-    .slice(0, 200);
-}
-
-function refreshPresence() {
-  const total = onlineUsers.male + onlineUsers.female + onlineUsers.other;
-  io.emit('presence', {
-    total,
-    male: onlineUsers.male,
-    female: onlineUsers.female,
-    other: onlineUsers.other,
-    waiting: {
-      male: waitingUsers.male.length,
-      female: waitingUsers.female.length,
-      other: waitingUsers.other.length
-    },
-    connections: Object.entries(connections).reduce((acc, [socketId, partnerId]) => {
-      const left = socketId;
-      const right = partnerId;
-      if (!left || !right) return acc;
-      acc.push({ socketId: left, partnerId: right });
-      return acc;
-    }, [])
-  });
-}
-
-function removeFromQueue(socket) {
-  ['male', 'female', 'other'].forEach((gender) => {
-    const index = waitingUsers[gender].indexOf(socket);
-    if (index !== -1) waitingUsers[gender].splice(index, 1);
-  });
-}
-
-function endCurrentChat(socket, notifyPartner = false) {
-  const partnerId = connections[socket.id];
-  if (partnerId) {
-    if (notifyPartner) io.to(partnerId).emit('partnerDisconnected');
-    delete connections[partnerId];
-    delete connections[socket.id];
-  }
-}
-
-function matchUser(socket) {
-  if (!socket.userData) return;
-
-  const { gender } = socket.userData;
-
-  ['male', 'female', 'other'].forEach((item) => {
-    waitingUsers[item] = waitingUsers[item].filter((itemSocket) => itemSocket.connected && !connections[itemSocket.id]);
-  });
-
-  removeFromQueue(socket);
-
-  let partner = null;
-
-  if (gender === 'male') {
-    if (waitingUsers.female.length > 0) partner = waitingUsers.female.shift();
-    else if (waitingUsers.male.length > 0) partner = waitingUsers.male.shift();
-  } else if (gender === 'female') {
-    if (waitingUsers.male.length > 0) partner = waitingUsers.male.shift();
-    else if (waitingUsers.female.length > 0) partner = waitingUsers.female.shift();
-  } else if (gender === 'other') {
-    if (waitingUsers.other.length > 0) partner = waitingUsers.other.shift();
-  }
-
-  if (partner) {
-    connections[socket.id] = partner.id;
-    connections[partner.id] = socket.id;
-
-    socket.emit('chatConnected', {
-      partnerName: partner.userData.name,
-      partnerGender: partner.userData.gender,
-      partnerId: partner.userData.userId || partner.userData.name
-    });
-
-    partner.emit('chatConnected', {
-      partnerName: socket.userData.name,
-      partnerGender: socket.userData.gender,
-      partnerId: socket.userData.userId || socket.userData.name
-    });
-
-    refreshPresence();
-    return;
-  }
-
-  waitingUsers[gender].push(socket);
-  socket.emit('searching');
-  refreshPresence();
-}
+// socketId → user gender (to track online users)
+const userGenders = {};
 
 io.on('connection', (socket) => {
-  socket.on('startSearch', ({ name, gender, userId } = {}) => {
-    const cleanName = sanitize(name) || 'Guest';
-    const cleanGender = ['male', 'female', 'other'].includes(gender) ? gender : 'other';
-    const cleanUserId = sanitize(userId) || `@${cleanName.toLowerCase().replace(/\s+/g, '')}`;
+  // Increment online count on connection
+  console.log(`[+] Connected: ${socket.id}`);
 
-    socket.userData = {
-      name: cleanName,
-      gender: cleanGender,
-      userId: cleanUserId
-    };
-
+  // ── Start Search ──────────────────────────────────────────
+  socket.on('startSearch', ({ name, gender }) => {
+    socket.userData = { name: sanitize(name), gender };
     socket.searching = true;
-    userGenders[socket.id] = cleanGender;
-    onlineUsers[cleanGender] = (onlineUsers[cleanGender] || 0) + 1;
-
-    refreshPresence();
+    
+    // Track online users by gender
+    userGenders[socket.id] = gender;
+    onlineUsers[gender]++;
+    broadcastOnlineStats();
+    
     matchUser(socket);
   });
 
+  // ── Send Message ─────────────────────────────────────────
   socket.on('sendMessage', (message) => {
     const partnerId = connections[socket.id];
-    const cleanMessage = sanitize(message).trim();
-
-    if (partnerId && cleanMessage) {
+    if (partnerId && message && message.trim()) {
       io.to(partnerId).emit('receiveMessage', {
-        name: socket.userData?.name || 'Anonymous',
-        message: cleanMessage
+        name: socket.userData.name,
+        message: sanitize(message.trim())
       });
     }
   });
 
+  // ── Typing Indicators ────────────────────────────────────
   socket.on('typing', () => {
     const partnerId = connections[socket.id];
-    if (partnerId && socket.userData) {
-      io.to(partnerId).emit('partnerTyping', socket.userData.name);
-    }
+    if (partnerId) io.to(partnerId).emit('partnerTyping', socket.userData.name);
   });
 
   socket.on('stopTyping', () => {
@@ -168,74 +72,218 @@ io.on('connection', (socket) => {
     if (partnerId) io.to(partnerId).emit('partnerStopTyping');
   });
 
+  // ── Request Photo ────────────────────────────────────────
+  socket.on('requestPhoto', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('photoRequested', socket.userData.name);
+    }
+  });
+
+  // ── Send Photo (forward base64 image to partner) ──────────
   socket.on('sendPhoto', (base64) => {
     const partnerId = connections[socket.id];
-    if (!partnerId || typeof base64 !== 'string' || !base64.trim()) return;
-
+    if (!partnerId) return;
+    // Optionally: server-side validation of size/type can be added here
     io.to(partnerId).emit('receivePhoto', {
-      name: socket.userData?.name || 'Anonymous',
+      name: socket.userData && socket.userData.name ? socket.userData.name : 'Anonymous',
       photo: base64
     });
   });
 
-  socket.on('newChat', () => {
-    endCurrentChat(socket, true);
-    if (socket.userData) matchUser(socket);
+  // ── Call signaling & WebRTC relay ────────────────────────
+  socket.on('callRequest', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('incomingCall', { from: socket.userData && socket.userData.name ? socket.userData.name : 'Anonymous' });
+    }
   });
 
-  socket.on('report', ({ reason } = {}) => {
+  socket.on('callResponse', ({ accept }) => {
     const partnerId = connections[socket.id];
-    const reasonText = sanitize(reason || 'other');
+    if (partnerId) {
+      if (accept) {
+        io.to(partnerId).emit('callAccepted');
+      } else {
+        io.to(partnerId).emit('callDeclined');
+      }
+    }
+  });
 
-    reports.push({
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      by: socket.userData?.name || 'Unknown',
-      reason: reasonText,
-      time: new Date().toISOString()
-    });
+  socket.on('callEnded', () => {
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('callEnded');
+    }
+  });
 
-    io.emit('adminReport', {
-      id: reports[reports.length - 1].id,
-      by: socket.userData?.name || 'Unknown',
-      reason: reasonText,
-      time: new Date().toISOString()
-    });
+  // WebRTC SDP/ICE relays
+  socket.on('webrtc-offer', (offer) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('webrtc-offer', offer);
+  });
+  socket.on('webrtc-answer', (answer) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('webrtc-answer', answer);
+  });
+  socket.on('webrtc-ice', (candidate) => {
+    const partnerId = connections[socket.id];
+    if (partnerId) io.to(partnerId).emit('webrtc-ice', candidate);
+  });
 
+  // ── New Chat ────────────────────────────────────────────
+  socket.on('newChat', () => {
+    endCurrentChat(socket, true); // notify partner
+    if (socket.userData) {
+      matchUser(socket);
+    }
+  });
+
+  // ── Report ──────────────────────────────────────────────
+  socket.on('report', ({ reason }) => {
+    const partnerId = connections[socket.id];
     if (partnerId) {
       io.to(partnerId).emit('partnerDisconnected');
       delete connections[partnerId];
     }
     delete connections[socket.id];
-
+    console.log(`[!] Report: ${socket.id} reported for "${reason}"`);
+    // After report, put user back in search
     setTimeout(() => {
       if (socket.connected && socket.userData) matchUser(socket);
     }, 500);
   });
 
-  socket.on('developerAction', ({ type, value } = {}) => {
-    if (!socket.userData) return;
-
-    if (type === 'changeUserId') {
-      socket.userData.userId = sanitize(value) || socket.userData.userId;
-      socket.emit('developerUpdated', {
-        userId: socket.userData.userId
-      });
-    }
-  });
-
+  // ── Disconnect ───────────────────────────────────────────
   socket.on('disconnect', () => {
+    // Update online count
     if (userGenders[socket.id]) {
       const gender = userGenders[socket.id];
-      onlineUsers[gender] = Math.max(0, (onlineUsers[gender] || 0) - 1);
+      onlineUsers[gender] = Math.max(0, onlineUsers[gender] - 1);
       delete userGenders[socket.id];
     }
+    
+    // notify partner if any call was active
+    const partnerId = connections[socket.id];
+    if (partnerId) {
+      io.to(partnerId).emit('partnerDisconnected');
+    }
 
+    broadcastOnlineStats();
     endCurrentChat(socket, true);
     removeFromQueue(socket);
-    refreshPresence();
+    console.log(`[-] Disconnected: ${socket.id}`);
   });
 });
 
+// ============================================================
+//  SMART MATCHING ALGORITHM
+//  
+//  Males & Females:
+//  - If both available: match Male ↔ Female
+//  - If only males left: match Male ↔ Male
+//  - If only females left: match Female ↔ Female
+//
+//  Others:
+//  - Only match with other "other" users
+//  - Never cross-mix with males/females
+// ============================================================
+function matchUser(socket) {
+  if (!socket.userData) return;
+
+  const { gender } = socket.userData;
+
+  // Clean stale sockets from queues
+  ['male', 'female', 'other'].forEach(g => {
+    waitingUsers[g] = waitingUsers[g].filter(s => s.connected && !connections[s.id]);
+  });
+
+  // Remove self from any queue first
+  removeFromQueue(socket);
+
+  let partner = null;
+
+  if (gender === 'male') {
+    // Male: prefer female first, then male
+    if (waitingUsers.female.length > 0) {
+      partner = waitingUsers.female.shift();
+    } else if (waitingUsers.male.length > 0) {
+      partner = waitingUsers.male.shift();
+    }
+  } else if (gender === 'female') {
+    // Female: prefer male first, then female
+    if (waitingUsers.male.length > 0) {
+      partner = waitingUsers.male.shift();
+    } else if (waitingUsers.female.length > 0) {
+      partner = waitingUsers.female.shift();
+    }
+  } else if (gender === 'other') {
+    // Other: only match with other
+    if (waitingUsers.other.length > 0) {
+      partner = waitingUsers.other.shift();
+    }
+  }
+
+  if (partner) {
+    // Create active pair
+    connections[socket.id]  = partner.id;
+    connections[partner.id] = socket.id;
+
+    socket.emit('chatConnected', {
+      partnerName: partner.userData.name,
+      partnerGender: partner.userData.gender
+    });
+    partner.emit('chatConnected', {
+      partnerName: socket.userData.name,
+      partnerGender: socket.userData.gender
+    });
+    console.log(`[~] Paired: ${socket.userData.name}(${gender}) ↔ ${partner.userData.name}(${partner.userData.gender})`);
+  } else {
+    // No match found → add to waiting queue
+    waitingUsers[gender].push(socket);
+    socket.emit('searching');
+    console.log(`[?] Waiting: ${socket.userData.name}(${gender}) | Queues: M=${waitingUsers.male.length} F=${waitingUsers.female.length} O=${waitingUsers.other.length}`);
+  }
+}
+
+function endCurrentChat(socket, notifyPartner = false) {
+  const partnerId = connections[socket.id];
+  if (partnerId) {
+    if (notifyPartner) io.to(partnerId).emit('partnerDisconnected');
+    delete connections[partner.id];
+    delete connections[socket.id];
+  }
+}
+
+function removeFromQueue(socket) {
+  ['male', 'female', 'other'].forEach(g => {
+    const idx = waitingUsers[g].indexOf(socket);
+    if (idx !== -1) waitingUsers[g].splice(idx, 1);
+  });
+}
+
+function sanitize(str) {
+  return String(str)
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .substring(0, 300);
+}
+
+function broadcastOnlineStats() {
+  const totalOnline = onlineUsers.male + onlineUsers.female + onlineUsers.other;
+  io.emit('onlineStats', {
+    total: totalOnline,
+    male: onlineUsers.male,
+    female: onlineUsers.female,
+    other: onlineUsers.other
+  });
+  console.log(`[📊] Online: M=${onlineUsers.male} F=${onlineUsers.female} O=${onlineUsers.other} Total=${totalOnline}`);
+}
+
+// ============================================================
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Chat Karo server running on port ${PORT}`);
+  console.log(`\n🟢 Chat Karo server running on 0.0.0.0:${PORT}\n`);
+  console.log(`   PORT env = ${process.env.PORT || '(not set, using 3000)'}\n`);
 });
+      
