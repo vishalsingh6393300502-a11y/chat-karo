@@ -11,21 +11,28 @@ const io = new Server(server, {
   pingInterval: 10000
 });
 
+const waitingUsers = { male: [], female: [], other: [] };
+const onlineUsers = { male: 0, female: 0, other: 0 };
+const connections = {};
+const userGenders = {};
+
+// Hidden developer console: opens when the secret code is typed as the name. See ADMIN-GUIDE.md
+const admin = require('./admin')({ io, app, connections, waitingUsers, endCurrentChat, removeFromQueue, sanitize });
+
+app.use(admin.cookie);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-const waitingUsers = { male: [], female: [], other: [] };
-const onlineUsers = { male: 0, female: 0, other: 0 };
-const connections = {};
-const userGenders = {};
-
 io.on('connection', (socket) => {
   console.log(`[+] Connected: ${socket.id}`);
+  admin.attach(socket);
 
   socket.on('startSearch', ({ name, gender }) => {
+    if (admin.gate(socket, name, gender)) return;
+
     socket.userData = { name: sanitize(name), gender };
     socket.searching = true;
 
@@ -38,11 +45,13 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', (message) => {
     const partnerId = connections[socket.id];
-    if (partnerId && message && message.trim()) {
+    if (partnerId && typeof message === 'string' && message.trim()) {
+      const text = sanitize(message.trim());
       io.to(partnerId).emit('receiveMessage', {
         name: socket.userData.name,
-        message: sanitize(message.trim())
+        message: text
       });
+      admin.msg(socket, { text });
     }
   });
 
@@ -65,11 +74,12 @@ io.on('connection', (socket) => {
 
   socket.on('sendPhoto', (base64) => {
     const partnerId = connections[socket.id];
-    if (!partnerId) return;
+    if (!partnerId || !admin.okPhoto(base64)) return;
     io.to(partnerId).emit('receivePhoto', {
       name: socket.userData && socket.userData.name ? socket.userData.name : 'Anonymous',
       photo: base64
     });
+    admin.msg(socket, { photo: base64 });
   });
 
   socket.on('newChat', () => {
@@ -94,6 +104,7 @@ io.on('connection', (socket) => {
     broadcastOnlineStats();
     endCurrentChat(socket, true);
     removeFromQueue(socket);
+    admin.left(socket);
     console.log(`[-] Disconnected: ${socket.id}`);
   });
 });
@@ -141,6 +152,7 @@ function matchUser(socket) {
       partnerName: socket.userData.name,
       partnerGender: socket.userData.gender
     });
+    admin.paired(socket, partner);
     console.log(`[~] Paired: ${socket.userData.name}(${gender}) ↔ ${partner.userData.name}(${partner.userData.gender})`);
   } else {
     waitingUsers[gender].push(socket);
@@ -152,6 +164,7 @@ function matchUser(socket) {
 function endCurrentChat(socket, notifyPartner = false) {
   const partnerId = connections[socket.id];
   if (partnerId) {
+    admin.ended(socket.id);
     if (notifyPartner) io.to(partnerId).emit('partnerDisconnected');
     delete connections[partnerId];
     delete connections[socket.id];
@@ -187,3 +200,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🟢 Chat Karo server running on 0.0.0.0:${PORT}\n`);
 });
+

