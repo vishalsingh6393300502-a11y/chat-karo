@@ -6,27 +6,27 @@
   <title>Chat Karo</title>
   <style>
     :root {
-      --bg: #0c1220;
-      --panel: #121d2f;
-      --panel-2: #17263d;
-      --border: #2d3d5d;
-      --text: #edf5ff;
-      --muted: #a6b9d9;
-      --primary: #71a6ff;
-      --primary-strong: #4c7fe8;
-      --danger: #ff667d;
-      --success: #5bd89c;
-      --warning: #ffca70;
-      --shadow: 0 22px 42px rgba(0, 0, 0, 0.25);
+      --bg: #07111c;
+      --panel: rgba(17, 26, 39, 0.94);
+      --panel-strong: #0f1d2b;
+      --panel-soft: #132330;
+      --border: #2a3f5c;
+      --text: #edf6ff;
+      --muted: #9bb1d1;
+      --primary: #73a8ff;
+      --primary-strong: #4f7fe9;
+      --success: #57d392;
+      --danger: #ff6d7a;
+      --shadow: 0 20px 40px rgba(0,0,0,0.28);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
+      font-family: "Segoe UI", sans-serif;
       background: linear-gradient(180deg, #07111f, #0d1729 45%, #0f1d2c);
       color: var(--text);
-      font-family: "Segoe UI", sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -38,28 +38,28 @@
 
     .auth-shell {
       width: min(560px, 100%);
-      background: rgba(16, 25, 39, 0.92);
+      background: rgba(14, 23, 35, 0.94);
       border: 1px solid var(--border);
       border-radius: 22px;
       box-shadow: var(--shadow);
-      padding: 28px 20px;
+      padding: 28px 22px;
     }
 
     .auth-header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
     .auth-header h1 {
-      font-size: clamp(2rem, 5vw, 2.5rem);
-      font-weight: 800;
-      margin-bottom: 8px;
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 5vw, 2.7rem);
+      letter-spacing: 0.04em;
     }
 
     .auth-header p {
-      color: var(--muted);
-      font-size: 0.92rem;
       margin: 0;
+      color: var(--muted);
+      font-size: 0.96rem;
     }
 
     .auth-form {
@@ -73,10 +73,10 @@
     }
 
     .field label {
-      font-size: 0.75rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
       color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     input, select, button, textarea {
@@ -87,7 +87,7 @@
       width: 100%;
       border-radius: 12px;
       border: 1px solid var(--border);
-      background: rgba(9, 15, 25, 0.86);
+      background: rgba(8, 15, 24, 0.88);
       color: var(--text);
       padding: 12px 14px;
       outline: none;
@@ -95,8 +95,8 @@
     }
 
     input:focus, select:focus, textarea:focus {
-      border-color: rgba(114, 166, 255, 0.9);
-      box-shadow: 0 0 0 3px rgba(114, 166, 255, 0.12);
+      border-color: rgba(115, 168, 255, 0.95);
+      box-shadow: 0 0 0 3px rgba(115, 168, 255, 0.12);
     }
 
     .check {
@@ -114,7 +114,7 @@
     }
 
     .btn {
-      border: 0;
+      border: none;
       border-radius: 12px;
       padding: 12px 16px;
       font-weight: 700;
@@ -122,7 +122,7 @@
       transition: 0.2s ease;
     }
 
-    .btn:hover { opacity: 0.85; }
+    .btn:hover { opacity: 0.9; }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--primary), var(--primary-strong));
@@ -130,25 +130,25 @@
     }
 
     .btn-danger {
-      background: linear-gradient(135deg, #ff7d7d, var(--danger));
+      background: linear-gradient(135deg, #ff7a7a, var(--danger));
       color: white;
     }
 
     .btn-success {
-      background: linear-gradient(135deg, #7ae3a7, var(--success));
+      background: linear-gradient(135deg, #7de7ae, var(--success));
       color: #0d1f18;
     }
 
     .btn-ghost {
-      background: rgba(255,255,255,0.03);
+      background: rgba(255,255,255,0.04);
       color: var(--text);
       border: 1px solid var(--border);
     }
 
     .app-shell {
       width: min(1100px, 100%);
-      height: min(90vh, 820px);
-      background: rgba(14, 21, 32, 0.82);
+      height: min(88vh, 820px);
+      background: rgba(12, 20, 30, 0.88);
       border: 1px solid var(--border);
       border-radius: 24px;
       overflow: hidden;
@@ -161,7 +161,7 @@
       align-items: center;
       gap: 12px;
       padding: 16px 18px;
-      background: rgba(10, 16, 26, 0.96);
+      background: rgba(9, 16, 25, 0.96);
       border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
     }
@@ -179,7 +179,7 @@
       display: grid;
       place-items: center;
       background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-      color: white;
+      color: #fff;
       font-weight: 800;
     }
 
@@ -198,421 +198,212 @@
     .presence {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.8rem;
     }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 9px;
-      border-radius: 999px;
+    .presence-pill {
+      padding: 6px 10px;
+      border-radius: 99px;
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.03);
-      color: var(--muted);
-      font-size: 0.73rem;
     }
 
-    .count {
-      display: inline-grid;
-      place-items: center;
-      min-width: 22px;
-      height: 22px;
+    .status-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: rgba(115, 166, 255, 0.12);
-      color: var(--primary);
-      font-weight: 800;
-      font-size: 0.74rem;
-      padding: 0 6px;
+      background: var(--success);
+      display: inline-block;
+      box-shadow: 0 0 12px rgba(87, 211, 146, 0.9);
     }
 
-    .dashboard {
+    .chat-main {
+      height: calc(100% - 80px);
       display: grid;
-      grid-template-columns: 240px 1fr;
-      height: calc(100% - 81px);
+      grid-template-rows: auto 1fr auto;
+      background: rgba(11, 18, 27, 0.82);
     }
 
-    .sidebar {
-      background: rgba(17, 27, 43, 0.8);
-      border-right: 1px solid var(--border);
-      padding: 18px 14px;
-    }
-
-    .sidebar-block {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 14px;
-    }
-
-    .sidebar-title {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    .filter-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .filter-item {
+    .status-bar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid transparent;
-      padding: 10px 12px;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 17, 25, 0.9);
       color: var(--muted);
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: 0.2s ease;
+      min-height: 52px;
     }
 
-    .filter-item.active {
-      background: rgba(114, 166, 255, 0.12);
-      border-color: rgba(114, 166, 255, 0.35);
+    #matchStatus {
+      font-weight: 600;
       color: var(--text);
     }
 
-    .main-panel {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
+    #typingStatus {
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 600;
+      min-height: 1.2em;
     }
 
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 18px 18px 12px;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-
-    .toolbar h2 {
-      margin: 0;
-      font-size: 1.05rem;
-    }
-
-    .toolbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 1.4fr 0.8fr;
-      gap: 0;
-      min-height: 0;
-      flex: 1;
-    }
-
-    .chat-panel {
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid var(--border);
-      min-width: 0;
-    }
-
-    .chat-card {
-      display: flex;
-      flex-direction: column;
-      margin: 14px;
-      flex: 1;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.02);
-      min-height: 0;
-    }
-
-    .chat-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 12px 14px;
-      flex-wrap: wrap;
-      border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
-    }
-
-    .match-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      padding: 7px 10px;
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .chat-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    #messages {
-      flex: 1;
-      min-height: 200px;
-      max-height: 470px;
+    .messages {
       overflow-y: auto;
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      background: rgba(4,10,20,0.5);
+      gap: 12px;
+      background: linear-gradient(180deg, rgba(15, 22, 33, 0.74), rgba(10, 17, 26, 0.82));
     }
 
-    .msg {
+    .message-row {
+      display: flex;
+      width: 100%;
+    }
+
+    .message-row.incoming { justify-content: flex-start; }
+    .message-row.outgoing { justify-content: flex-end; }
+
+    .bubble {
       max-width: 78%;
+      border-radius: 16px;
       padding: 10px 12px;
-      border-radius: 14px;
-      line-height: 1.45;
-      font-size: 0.92rem;
       word-break: break-word;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.15);
     }
 
-    .msg.mine {
-      align-self: flex-end;
+    .message-row.incoming .bubble {
+      background: #1a2a3e;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-top-left-radius: 6px;
+    }
+
+    .message-row.outgoing .bubble {
       background: linear-gradient(135deg, var(--primary), var(--primary-strong));
       color: white;
+      border-top-right-radius: 6px;
     }
 
-    .msg.theirs {
-      align-self: flex-start;
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-    }
-
-    .msg.system {
-      align-self: center;
-      color: var(--muted);
-      font-style: italic;
-      background: transparent;
-      text-align: center;
-    }
-
-    .msg.photo {
-      max-width: 260px;
-      padding: 0;
-      background: transparent;
-    }
-
-    .photo-box {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .photo-box img {
-      width: 100%;
-      max-height: 280px;
-      object-fit: cover;
+    .bubble .sender {
       display: block;
-      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      opacity: 0.9;
+    }
+
+    .bubble .text {
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .photo-card {
+      width: min(280px, 72%);
+      background: rgba(20, 29, 40, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+    }
+
+    .photo-card img {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+      object-fit: cover;
+      max-height: 320px;
+    }
+
+    .photo-meta {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 8px;
+      padding: 0 4px 2px;
     }
 
     .composer {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
+      gap: 8px;
+      padding: 12px 16px 16px;
       border-top: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
+      background: rgba(10, 17, 25, 0.96);
     }
 
-    textarea {
-      resize: none;
-      min-height: 42px;
-      max-height: 120px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(6, 12, 20, 0.9);
-      color: var(--text);
-      padding: 10px 12px;
-      outline: none;
-    }
-
-    .side-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      padding: 14px;
+    #messageInput {
+      flex: 1;
       min-width: 0;
     }
 
-    .mini-panel {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px;
-    }
-
-    .mini-panel h4 {
-      margin: 0 0 12px;
-      font-size: 0.74rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 220px;
-      overflow-y: auto;
-    }
-
-    .list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 10px;
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
-
-    .list-item strong { color: var(--text); }
-
-    .tag {
+    .upload-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      background: rgba(115,166,255,0.12);
-      color: var(--primary);
-    }
-
-    .tag.danger {
-      background: rgba(255,102,125,0.12);
-      color: var(--danger);
-    }
-
-    .tag.success {
-      background: rgba(91,216,156,0.12);
-      color: var(--success);
-    }
-
-    .notif {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.02);
+      padding: 10px 12px;
+      border-radius: 12px;
       border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 0.78rem;
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0,0,0,0);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
       white-space: nowrap;
-      margin: -1px;
-      padding: 0;
-      border: 0;
     }
 
-    .hidden { display: none !important; }
+    .hidden {
+      display: none !important;
+    }
 
-    #developerModal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
+    .empty-state {
       display: flex;
       align-items: center;
       justify-content: center;
+      min-height: 200px;
+      color: var(--muted);
+      text-align: center;
       padding: 20px;
-      z-index: 9999;
+      font-size: 0.95rem;
     }
 
-    .developer-card {
-      width: min(420px, 100%);
-      background: rgba(18, 28, 42, 0.98);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .developer-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .developer-body {
-      display: grid;
-      gap: 14px;
-    }
-
-    .developer-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    @media (max-width: 900px) {
-      .dashboard { grid-template-columns: 1fr; }
-      .layout { grid-template-columns: 1fr; }
-      .chat-panel { border-right: none; border-bottom: 1px solid var(--border); }
-      .app-shell { height: auto; min-height: 90vh; }
+    @media (max-width: 560px) {
+      body { padding: 12px; }
+      .auth-shell, .app-shell { border-radius: 18px; }
+      .composer {
+        flex-wrap: wrap;
+      }
+      #messageInput {
+        width: 100%;
+        order: 1;
+      }
+      .upload-btn, #sendBtn {
+        order: 2;
+      }
+      .bubble { max-width: 85%; }
     }
   </style>
 </head>
 <body>
-  <div id="landingView" class="screen active">
+  <section id="loginScreen" class="screen active">
     <div class="auth-shell">
       <div class="auth-header">
         <h1>Chat Karo</h1>
-        <p>Secure random chat with live categories and developer tools.</p>
+        <p>Random chat with anyone</p>
       </div>
 
-      <div class="auth-form">
+      <form id="loginForm" class="auth-form">
         <div class="field">
-          <label for="nameInput">User name</label>
-          <input id="nameInput" type="text" placeholder="Enter your name" maxlength="30" />
+          <label for="nameInput">Name</label>
+          <input id="nameInput" name="name" maxlength="24" placeholder="Your name" required />
         </div>
 
         <div class="field">
-          <label for="userIdInput">User ID</label>
-          <input id="userIdInput" type="text" placeholder="@6393300502" maxlength="40" />
-        </div>
-
-        <div class="field">
-          <label for="genderSelect">Gender</label>
-          <select id="genderSelect">
+          <label for="genderInput">Gender</label>
+          <select id="genderInput" name="gender">
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
@@ -620,629 +411,299 @@
         </div>
 
         <label class="check">
-          <input id="ageCheck" type="checkbox" />
-          <span>I confirm I am 18 years or older</span>
+          <input type="checkbox" id="ageCheck" required />
+          <span>I am 18+ and agree to continue.</span>
         </label>
 
-        <button class="btn btn-primary" id="startBtn">Start Chatting</button>
-      </div>
+        <button class="btn btn-primary" type="submit">Start Chatting</button>
+      </form>
     </div>
-  </div>
+  </section>
 
-  <div id="appView" class="screen">
+  <section id="chatScreen" class="screen">
     <div class="app-shell">
       <header>
         <div class="brand">
           <div class="brand-mark">C</div>
           <div>
             <div class="brand-text">Chat Karo</div>
-            <span class="brand-sub">Live chat + operator dashboard</span>
+            <span class="brand-sub">Live random chat</span>
           </div>
         </div>
 
         <div class="presence">
-          <div class="pill">Total <span class="count" id="totalOnline">0</span></div>
-          <div class="pill">Male <span class="count" id="maleOnline">0</span></div>
-          <div class="pill">Female <span class="count" id="femaleOnline">0</span></div>
-          <div class="pill">Other <span class="count" id="otherOnline">0</span></div>
-          <button id="notificationBtn" class="btn btn-ghost" type="button">🔔 <span id="reportCount">0</span></button>
+          <span class="presence-pill"><span class="status-dot"></span> Online: <strong id="onlineCount">0</strong></span>
         </div>
       </header>
 
-      <div class="dashboard">
-        <aside class="sidebar">
-          <div class="sidebar-block">
-            <div class="sidebar-title">Categories</div>
-            <div class="filter-list">
-              <div class="filter-item active" data-filter="all">All</div>
-              <div class="filter-item" data-filter="online">Online People</div>
-              <div class="filter-item" data-filter="matched">Live Connected</div>
-              <div class="filter-item" data-filter="past">Past Connected</div>
-              <div class="filter-item" data-filter="reports">Reports</div>
-            </div>
-          </div>
-
-          <div class="sidebar-block">
-            <div class="sidebar-title">Operator</div>
-            <div class="filter-list">
-              <div class="filter-item" data-filter="developer">Developer Menu</div>
-            </div>
-          </div>
-        </aside>
-
-        <main class="main-panel">
-          <div class="toolbar">
-            <h2 id="sectionTitle">Online People</h2>
-            <div class="toolbar-actions">
-              <button id="developerBtn" class="btn btn-ghost" type="button">Developer Menu</button>
-              <button id="newChatBtn" class="btn btn-danger" type="button">Next Match</button>
-            </div>
-          </div>
-
-          <div class="layout">
-            <section class="chat-panel">
-              <div class="chat-card">
-                <div class="chat-header">
-                  <div class="match-chip">
-                    <span>Connected with</span>
-                    <strong id="partnerName">No one yet</strong>
-                  </div>
-
-                  <div class="chat-actions">
-                    <button id="photoBtn" class="btn btn-ghost" type="button">📷 Photo</button>
-                  </div>
-                </div>
-
-                <div id="messages"></div>
-
-                <div class="composer">
-                  <textarea id="msgInput" rows="1" placeholder="Type your message..."></textarea>
-                  <button id="sendBtn" class="btn btn-primary" type="button">Send</button>
-                  <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />
-                </div>
-              </div>
-            </section>
-
-            <aside class="side-panel">
-              <div class="mini-panel">
-                <h4>Online People</h4>
-                <div id="onlineList" class="list"></div>
-              </div>
-
-              <div class="mini-panel">
-                <h4>Live Connected</h4>
-                <div id="matchedList" class="list"></div>
-              </div>
-
-              <div class="mini-panel">
-                <h4>Past Connected</h4>
-                <div id="pastList" class="list"></div>
-              </div>
-
-              <div class="mini-panel">
-                <h4>Reports & Notifications</h4>
-                <div id="reportList" class="list"></div>
-              </div>
-            </aside>
-          </div>
-        </main>
-      </div>
-    </div>
-  </div>
-
-  <div id="developerModal" class="hidden">
-    <div class="developer-card">
-      <div class="developer-header">
-        <strong>Developer Menu</strong>
-        <button id="closeDeveloperBtn" class="btn btn-ghost" type="button">Close</button>
-      </div>
-
-      <div class="developer-body">
-        <div class="field">
-          <label for="devUserIdInput">Developer login ID</label>
-          <input id="devUserIdInput" type="text" placeholder="@6393300502" />
+      <div class="chat-main">
+        <div class="status-bar">
+          <span id="matchStatus">Searching for a match...</span>
+          <span id="typingStatus"></span>
         </div>
 
-        <div class="field">
-          <label for="devPrivateIdInput">Private user ID</label>
-          <input id="devPrivateIdInput" type="text" placeholder="private-secret-id" />
+        <div id="messages" class="messages">
+          <div class="empty-state">Waiting for someone to connect...</div>
         </div>
 
-        <div class="field">
-          <label for="devSecretInput">Developer secret</label>
-          <input id="devSecretInput" type="text" placeholder="@6393300502@" />
-        </div>
-
-        <div class="field">
-          <label>Save chat history</label>
-          <div class="switch-wrap">
-            <input id="saveHistoryToggle" type="checkbox" checked />
-          </div>
-        </div>
-
-        <div class="developer-actions">
-          <button id="saveDeveloperBtn" class="btn btn-primary" type="button">Save</button>
-          <button id="hideDeveloperBtn" class="btn btn-ghost" type="button">Hide</button>
+        <div class="composer">
+          <input id="messageInput" type="text" maxlength="500" placeholder="Type a message..." />
+          <label class="upload-btn">
+            <input id="photoInput" type="file" accept="image/*" hidden />
+            Add Photo
+          </label>
+          <button id="sendBtn" class="btn btn-primary" type="button">Send</button>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
 
+    const loginScreen = document.getElementById('loginScreen');
+    const chatScreen = document.getElementById('chatScreen');
+    const loginForm = document.getElementById('loginForm');
+    const nameInput = document.getElementById('nameInput');
+    const genderInput = document.getElementById('genderInput');
+    const messagesEl = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const photoInput = document.getElementById('photoInput');
+    const matchStatus = document.getElementById('matchStatus');
+    const typingStatus = document.getElementById('typingStatus');
+    const onlineCount = document.getElementById('onlineCount');
+
     const state = {
-      userName: '',
-      userId: '@default',
-      privateId: '@private',
-      saveHistory: true,
-      reportCount: 0,
-      activeFilter: 'all',
-      onlineUsers: [],
-      liveConnected: [],
-      pastConnected: [],
-      reports: []
+      connected: false,
+      partnerName: '',
+      selectedPhoto: '',
+      typingTimer: null
     };
 
-    const refs = {
-      landingView: document.getElementById('landingView'),
-      appView: document.getElementById('appView'),
-      nameInput: document.getElementById('nameInput'),
-      userIdInput: document.getElementById('userIdInput'),
-      genderSelect: document.getElementById('genderSelect'),
-      ageCheck: document.getElementById('ageCheck'),
-      startBtn: document.getElementById('startBtn'),
-      developerBtn: document.getElementById('developerBtn'),
-      newChatBtn: document.getElementById('newChatBtn'),
-      photoBtn: document.getElementById('photoBtn'),
-      sendBtn: document.getElementById('sendBtn'),
-      fileInput: document.getElementById('fileInput'),
-      msgInput: document.getElementById('msgInput'),
-      messageArea: document.getElementById('messages'),
-      partnerName: document.getElementById('partnerName'),
-      totalOnline: document.getElementById('totalOnline'),
-      maleOnline: document.getElementById('maleOnline'),
-      femaleOnline: document.getElementById('femaleOnline'),
-      otherOnline: document.getElementById('otherOnline'),
-      reportCount: document.getElementById('reportCount'),
-      notificationBtn: document.getElementById('notificationBtn'),
-      onlineList: document.getElementById('onlineList'),
-      matchedList: document.getElementById('matchedList'),
-      pastList: document.getElementById('pastList'),
-      reportList: document.getElementById('reportList'),
-      sectionTitle: document.getElementById('sectionTitle'),
-      developerModal: document.getElementById('developerModal'),
-      devUserIdInput: document.getElementById('devUserIdInput'),
-      devPrivateIdInput: document.getElementById('devPrivateIdInput'),
-      devSecretInput: document.getElementById('devSecretInput'),
-      saveHistoryToggle: document.getElementById('saveHistoryToggle'),
-      closeDeveloperBtn: document.getElementById('closeDeveloperBtn'),
-      saveDeveloperBtn: document.getElementById('saveDeveloperBtn'),
-      hideDeveloperBtn: document.getElementById('hideDeveloperBtn')
-    };
-
-    function safeText(value) {
-      return String(value || '').replace(/[<>]/g, '').slice(0, 120);
+    function setScreen(showChat) {
+      loginScreen.classList.toggle('active', !showChat);
+      chatScreen.classList.toggle('active', showChat);
     }
 
-    function showScreen(screenName) {
-      refs.landingView.classList.toggle('active', screenName === 'landing');
-      refs.appView.classList.toggle('active', screenName === 'app');
+    function updateOnline(total) {
+      onlineCount.textContent = total || 0;
     }
 
-    function updateSectionTitle() {
-      const map = {
-        all: 'All Sections',
-        online: 'Online People',
-        matched: 'Live Connected',
-        past: 'Past Connected',
-        reports: 'Reports',
-        developer: 'Developer Menu'
-      };
-      refs.sectionTitle.textContent = map[state.activeFilter] || 'Online People';
+    function setStatus(text) {
+      matchStatus.textContent = text;
     }
 
-    function renderOnlineList() {
-      const items = state.onlineUsers.length ? state.onlineUsers : [
-        { name: 'Guest User', gender: 'male' },
-        { name: 'Friend One', gender: 'female' },
-        { name: 'Friend Two', gender: 'other' }
-      ];
-
-      refs.onlineList.innerHTML = '';
-      items.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'list-item';
-        row.innerHTML = `
-          <strong>${safeText(item.name || 'Anonymous')}</strong>
-          <span class="tag">${safeText(item.gender || 'other')}</span>
-        `;
-        refs.onlineList.appendChild(row);
-      });
+    function clearEmptyState() {
+      const empty = messagesEl.querySelector('.empty-state');
+      if (empty) empty.remove();
     }
 
-    function renderLiveList() {
-      const items = state.liveConnected.length ? state.liveConnected : [
-        { name: 'Live User A', status: 'live' },
-        { name: 'Live User B', status: 'live' }
-      ];
+    function appendMessage(name, message, direction) {
+      clearEmptyState();
+      const row = document.createElement('div');
+      row.className = `message-row ${direction}`;
 
-      refs.matchedList.innerHTML = '';
-      items.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'list-item';
-        row.innerHTML = `
-          <strong>${safeText(item.name || 'Anonymous')}</strong>
-          <span class="tag success">${safeText(item.status || 'live')}</span>
-        `;
-        refs.matchedList.appendChild(row);
-      });
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+
+      const sender = document.createElement('span');
+      sender.className = 'sender';
+      sender.textContent = name;
+
+      const text = document.createElement('div');
+      text.className = 'text';
+      text.textContent = message;
+
+      bubble.appendChild(sender);
+      bubble.appendChild(text);
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function renderPastList() {
-      const items = state.pastConnected.length ? state.pastConnected : [
-        { name: 'Past User A', status: 'past' },
-        { name: 'Past User B', status: 'past' }
-      ];
+    function appendPhoto(name, photo, direction) {
+      clearEmptyState();
+      const row = document.createElement('div');
+      row.className = `message-row ${direction}`;
 
-      refs.pastList.innerHTML = '';
-      items.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'list-item';
-        row.innerHTML = `
-          <strong>${safeText(item.name || 'Anonymous')}</strong>
-          <span class="tag">${safeText(item.status || 'past')}</span>
-        `;
-        refs.pastList.appendChild(row);
-      });
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+
+      const img = document.createElement('img');
+      img.src = photo;
+      img.alt = 'Sent photo';
+
+      const meta = document.createElement('span');
+      meta.className = 'photo-meta';
+      meta.textContent = name;
+
+      card.appendChild(img);
+      card.appendChild(meta);
+      row.appendChild(card);
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function renderReports() {
-      const items = state.reports.length ? state.reports : [
-        { reason: 'Spam', by: 'System' },
-        { reason: 'Harassment', by: 'System' }
-      ];
-
-      refs.reportList.innerHTML = '';
-      items.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'notif';
-        row.innerHTML = `
-          <div>
-            <strong>${safeText(item.reason || 'Report')}</strong><br />
-            <span>${safeText(item.by || 'Unknown')}</span>
-          </div>
-          <span class="tag danger">Report</span>
-        `;
-        refs.reportList.appendChild(row);
-      });
+    function showTypingIndicator(text) {
+      typingStatus.textContent = text;
     }
 
-    function addMessage(text, type = 'system', sender = '', isPhoto = false) {
-      const div = document.createElement('div');
-      if (isPhoto) {
-        div.className = 'msg photo';
-        const imgBox = document.createElement('div');
-        imgBox.className = 'photo-box';
-        const img = document.createElement('img');
-        img.src = text;
-        img.alt = 'shared photo';
-        img.loading = 'lazy';
-        img.onclick = () => window.open(text, '_blank');
-        imgBox.appendChild(img);
-        div.appendChild(imgBox);
-      } else {
-        div.className = `msg ${type}`;
-        if (sender) {
-          const label = document.createElement('div');
-          label.style.fontSize = '0.72rem';
-          label.style.opacity = '0.72';
-          label.style.marginBottom = '4px';
-          label.textContent = sender;
-          div.appendChild(label);
-        }
-        div.appendChild(document.createTextNode(text));
-      }
-
-      refs.messageArea.appendChild(div);
-      refs.messageArea.scrollTop = refs.messageArea.scrollHeight;
-    }
-
-    function clearMessages() {
-      refs.messageArea.innerHTML = '';
-    }
-
-    function setPresence(stats) {
-      refs.totalOnline.textContent = stats.total || 0;
-      refs.maleOnline.textContent = stats.male || 0;
-      refs.femaleOnline.textContent = stats.female || 0;
-      refs.otherOnline.textContent = stats.other || 0;
-    }
-
-    function openDeveloperMenu() {
-      refs.devUserIdInput.value = state.userId;
-      refs.devPrivateIdInput.value = state.privateId;
-      refs.devSecretInput.value = '@6393300502@';
-      refs.developerModal.classList.remove('hidden');
-    }
-
-    function closeDeveloperMenu() {
-      refs.developerModal.classList.add('hidden');
-    }
-
-    function saveDeveloperConfig() {
-      const devUserId = refs.devUserIdInput.value.trim();
-      const devPrivateId = refs.devPrivateIdInput.value.trim();
-      const developerSecret = refs.devSecretInput.value.trim();
-
-      if (!devUserId) {
-        alert('Please enter a developer login ID');
-        return;
-      }
-
-      if (!devPrivateId) {
-        alert('Please enter a private user ID');
-        return;
-      }
-
-      if (developerSecret !== '@6393300502@') {
-        alert('Developer secret is invalid');
-        return;
-      }
-
-      state.userId = devUserId;
-      state.privateId = devPrivateId;
-      socket.emit('developerLogin', {
-        secret: developerSecret,
-        userId: devUserId,
-        privateId: devPrivateId
-      });
-
-      socket.emit('developerAction', {
-        type: 'setPrivateId',
-        value: devPrivateId
-      });
-
-      socket.emit('toggleSaveHistory', {
-        saveHistory: refs.saveHistoryToggle.checked
-      });
-
-      closeDeveloperMenu();
-    }
-
-    function compressImageFile(file, maxDim = 1200, quality = 0.72) {
-      return new Promise((resolve) => {
+    function resizeImage(file) {
+      return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = () => {
           const img = new Image();
           img.onload = () => {
-            let width = img.width;
-            let height = img.height;
-
-            if (Math.max(width, height) > maxDim) {
-              if (width > height) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              } else {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
-            }
-
             const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
+            const maxSize = 700;
+            const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+
             const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, width, height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
+            let quality = 0.82;
             let dataUrl = canvas.toDataURL('image/jpeg', quality);
-            let sizeKb = Math.round((dataUrl.length * 3) / 4 / 1024);
+            const maxBytes = 70 * 1024;
 
-            const steps = [0.72, 0.62, 0.52, 0.42, 0.32];
-            for (const q of steps) {
-              if (sizeKb <= 70) break;
-              dataUrl = canvas.toDataURL('image/jpeg', q);
-              sizeKb = Math.round((dataUrl.length * 3) / 4 / 1024);
+            while (dataUrl.length > maxBytes * 1.4 && quality > 0.35) {
+              quality -= 0.08;
+              dataUrl = canvas.toDataURL('image/jpeg', quality);
             }
 
             resolve(dataUrl);
           };
-          img.onerror = () => resolve(null);
-          img.src = event.target.result;
+          img.onerror = reject;
+          img.src = reader.result;
         };
-        reader.onerror = () => resolve(null);
+        reader.onerror = reject;
         reader.readAsDataURL(file);
       });
     }
 
-    async function sendPhoto(file) {
+    function handlePhotoSelection(file) {
       if (!file) return;
-      const dataUrl = await compressImageFile(file);
-      if (!dataUrl) {
-        alert('Failed to process image');
-        return;
-      }
-      socket.emit('sendPhoto', dataUrl);
-      addMessage(dataUrl, 'system', '', true);
+      resizeImage(file)
+        .then((compressed) => {
+          state.selectedPhoto = compressed;
+          const preview = document.createElement('div');
+          preview.className = 'photo-card';
+          preview.innerHTML = `<img src="${compressed}" alt="Selected preview" /><span class="photo-meta">Photo ready to send</span>`;
+
+          const existing = messagesEl.querySelector('.preview-box');
+          if (existing) existing.remove();
+          preview.classList.add('preview-box');
+          messagesEl.appendChild(preview);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        })
+        .catch(() => {
+          setStatus('Photo could not be processed. Please try another image.');
+        });
     }
 
-    function startSearch() {
-      const name = refs.nameInput.value.trim();
-      const userId = refs.userIdInput.value.trim() || '@default';
-      const gender = refs.genderSelect.value;
-      const ageOk = refs.ageCheck.checked;
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      const gender = genderInput.value;
 
       if (!name) {
-        alert('Please enter your name');
+        setStatus('Please enter your name.');
         return;
       }
 
-      if (!ageOk) {
-        alert('You must confirm age 18+');
-        return;
+      socket.emit('startSearch', { name, gender });
+      setScreen(true);
+      setStatus('Searching for a match...');
+      showTypingIndicator('');
+      state.connected = false;
+      state.partnerName = '';
+    });
+
+    sendBtn.addEventListener('click', () => {
+      const message = messageInput.value.trim();
+
+      if (state.selectedPhoto) {
+        socket.emit('sendPhoto', state.selectedPhoto);
+        appendPhoto('You', state.selectedPhoto, 'outgoing');
+        state.selectedPhoto = '';
+        const preview = messagesEl.querySelector('.preview-box');
+        if (preview) preview.remove();
       }
 
-      state.userName = name;
-      state.userId = userId;
-      state.privateId = userId;
-
-      socket.emit('startSearch', {
-        name,
-        gender,
-        userId,
-        privateId: userId,
-        saveHistory: state.saveHistory
-      });
-
-      showScreen('app');
-      refs.partnerName.textContent = 'Looking for match...';
-    }
-
-    function sendMessage() {
-      const value = refs.msgInput.value.trim();
-      if (!value) return;
-      socket.emit('sendMessage', value);
-      addMessage(value, 'mine');
-      refs.msgInput.value = '';
-      socket.emit('stopTyping');
-    }
-
-    function newChat() {
-      clearMessages();
-      refs.partnerName.textContent = 'No one yet';
-      socket.emit('newChat');
-    }
-
-    function handleIncomingMessage({ name, message }) {
-      addMessage(message, 'theirs', name);
-    }
-
-    function handleIncomingPhoto({ name, photo }) {
-      addMessage(photo, 'system', `${name} sent a photo`, true);
-    }
-
-    function handlePresence(stats) {
-      setPresence(stats || { total: 0, male: 0, female: 0, other: 0 });
-      state.onlineUsers = [
-        { name: 'Guest User', gender: 'male' },
-        { name: 'Friend One', gender: 'female' },
-        { name: 'Friend Two', gender: 'other' }
-      ];
-      renderOnlineList();
-      renderLiveList();
-      renderPastList();
-      renderReports();
-    }
-
-    function handleAdminReport(report) {
-      state.reportCount += 1;
-      refs.reportCount.textContent = String(state.reportCount);
-      state.reports.unshift({ reason: report.reason || 'Report', by: report.reportedBy || 'Unknown' });
-      renderReports();
-    }
-
-    function handleChatConnected({ partnerName, partnerGender, partnerId, history = [] }) {
-      refs.partnerName.textContent = partnerName || 'Connected';
-      state.liveConnected = [{ name: partnerName || 'User', status: 'live' }];
-      renderLiveList();
-      renderPastList();
-
-      if (history && history.length) {
-        history.forEach(item => {
-          if (item.type === 'text') {
-            addMessage(item.message, 'theirs', item.sender);
-          } else if (item.type === 'image') {
-            addMessage(item.image, 'system', `${item.sender} sent a photo`, true);
-          }
-        });
+      if (message) {
+        socket.emit('sendMessage', message);
+        appendMessage('You', message, 'outgoing');
+        messageInput.value = '';
       }
+    });
 
-      addMessage(`Connected with ${partnerName}. Say hi!`, 'system');
-    }
+    messageInput.addEventListener('input', () => {
+      if (!state.connected) return;
+      socket.emit('typing');
+      clearTimeout(state.typingTimer);
+      state.typingTimer = setTimeout(() => socket.emit('stopTyping'), 800);
+    });
 
-    function handlePartnerDisconnected() {
-      refs.partnerName.textContent = 'No one yet';
-      addMessage('Partner disconnected. Click "Next Match" to find another chat.', 'system');
-    }
+    photoInput.addEventListener('change', (event) => {
+      const [file] = event.target.files;
+      if (!file) return;
+      handlePhotoSelection(file);
+      event.target.value = '';
+    });
 
-    function handleSaveHistoryUpdated({ saveHistory }) {
-      state.saveHistory = saveHistory !== false;
-      refs.saveHistoryToggle.checked = state.saveHistory;
-    }
+    socket.on('onlineStats', ({ total }) => {
+      updateOnline(total || 0);
+    });
 
-    function bindEvents() {
-      refs.startBtn.addEventListener('click', startSearch);
-      refs.sendBtn.addEventListener('click', sendMessage);
+    socket.on('presence', ({ total }) => {
+      updateOnline(total || 0);
+    });
 
-      refs.msgInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-          event.preventDefault();
-          sendMessage();
-        }
-      });
-
-      refs.msgInput.addEventListener('input', () => {
-        socket.emit('typing');
-        clearTimeout(window.typingTimer);
-        window.typingTimer = setTimeout(() => socket.emit('stopTyping'), 1000);
-      });
-
-      refs.photoBtn.addEventListener('click', () => refs.fileInput.click());
-
-      refs.fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        await sendPhoto(file);
-        event.target.value = '';
-      });
-
-      refs.newChatBtn.addEventListener('click', newChat);
-
-      refs.notificationBtn.addEventListener('click', () => {
-        state.activeFilter = 'reports';
-        updateSectionTitle();
-      });
-
-      refs.developerBtn.addEventListener('click', openDeveloperMenu);
-      refs.closeDeveloperBtn.addEventListener('click', closeDeveloperMenu);
-      refs.hideDeveloperBtn.addEventListener('click', closeDeveloperMenu);
-      refs.saveDeveloperBtn.addEventListener('click', saveDeveloperConfig);
-
-      document.querySelectorAll('.filter-item').forEach(item => {
-        item.addEventListener('click', () => {
-          document.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
-          item.classList.add('active');
-          state.activeFilter = item.dataset.filter;
-          updateSectionTitle();
-        });
-      });
-    }
-
-    socket.on('presence', handlePresence);
-    socket.on('chatConnected', handleChatConnected);
-    socket.on('receiveMessage', handleIncomingMessage);
-    socket.on('receivePhoto', handleIncomingPhoto);
-    socket.on('partnerDisconnected', handlePartnerDisconnected);
-    socket.on('adminReport', handleAdminReport);
     socket.on('searching', () => {
-      refs.partnerName.textContent = 'Searching...';
-      addMessage('Searching for a match...', 'system');
-    });
-    socket.on('saveHistoryUpdated', handleSaveHistoryUpdated);
-    socket.on('developerLoggedIn', () => {
-      refs.devUserIdInput.value = state.userId;
-      refs.devPrivateIdInput.value = state.privateId;
+      setStatus('Searching for a match...');
     });
 
-    bindEvents();
-    renderOnlineList();
-    renderLiveList();
-    renderPastList();
-    renderReports();
-    showScreen('landing');
+    socket.on('chatConnected', ({ partnerName, partnerGender }) => {
+      state.connected = true;
+      state.partnerName = partnerName;
+      setStatus(`Connected with ${partnerName} (${partnerGender})`);
+      showTypingIndicator('');
+      clearEmptyState();
+    });
+
+    socket.on('receiveMessage', ({ name, message }) => {
+      appendMessage(name, message, 'incoming');
+    });
+
+    socket.on('receivePhoto', ({ name, photo }) => {
+      appendPhoto(name, photo, 'incoming');
+    });
+
+    socket.on('partnerTyping', (name) => {
+      if (state.connected) showTypingIndicator(`${name} is typing...`);
+    });
+
+    socket.on('partnerStopTyping', () => {
+      if (state.connected) showTypingIndicator('');
+    });
+
+    socket.on('partnerDisconnected', () => {
+      state.connected = false;
+      state.partnerName = '';
+      setStatus('Partner left. Searching again...');
+      showTypingIndicator('');
+      socket.emit('startSearch', {
+        name: nameInput.value.trim() || 'Anonymous',
+        gender: genderInput.value
+      });
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
   </script>
 </body>
 </html>
