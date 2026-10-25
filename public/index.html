@@ -3,707 +3,590 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat Karo</title>
+  <title>Chat Karo — Random Chat</title>
   <style>
-    :root {
-      --bg: #07111c;
-      --panel: rgba(17, 26, 39, 0.94);
-      --panel-strong: #0f1d2b;
-      --panel-soft: #132330;
-      --border: #2a3f5c;
-      --text: #edf6ff;
-      --muted: #9bb1d1;
-      --primary: #73a8ff;
-      --primary-strong: #4f7fe9;
-      --success: #57d392;
-      --danger: #ff6d7a;
-      --shadow: 0 20px 40px rgba(0,0,0,0.28);
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
     body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #07111f, #0d1729 45%, #0f1d2c);
-      color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      height: 100dvh;
       display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      align-items: center;
-      padding: 20px;
     }
 
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    .auth-shell {
-      width: min(560px, 100%);
-      background: rgba(14, 23, 35, 0.94);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      padding: 28px 22px;
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 22px;
-    }
-
-    .auth-header h1 {
-      margin: 0 0 8px;
-      font-size: clamp(2rem, 5vw, 2.7rem);
-      letter-spacing: 0.04em;
-    }
-
-    .auth-header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.96rem;
-    }
-
-    .auth-form {
-      display: grid;
-      gap: 16px;
-    }
-
-    .field {
-      display: grid;
-      gap: 8px;
-    }
-
-    .field label {
-      color: var(--muted);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    input, select, button, textarea {
-      font: inherit;
-    }
-
-    input, select, textarea {
+    /* ── Header ── */
+    header {
       width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(8, 15, 24, 0.88);
-      color: var(--text);
-      padding: 12px 14px;
-      outline: none;
-      transition: 0.2s ease;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: rgba(115, 168, 255, 0.95);
-      box-shadow: 0 0 0 3px rgba(115, 168, 255, 0.12);
-    }
-
-    .check {
+      max-width: 640px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 0.92rem;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #1a1a2e;
+      border-bottom: 1px solid #2a2a4a;
+      flex-wrap: wrap;
+      gap: 12px;
     }
+    header h1 { font-size: 1.2rem; color: #7b8cde; }
+    header .subtitle { font-size: 0.65rem; color: #5b9cff; font-weight: 400; letter-spacing: 0.5px; }
+    
+    #onlineStats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: #2a2a4a;
+      border-radius: 4px;
+    }
+    .stat-label { color: #aaa; font-weight: 500; }
+    .stat-count { color: #6bcb77; font-weight: 600; }
+    .stat-male { color: #5b9cff; }
+    .stat-female { color: #ff69b4; }
+    .stat-other { color: #ffa500; }
 
-    .check input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--primary);
+    /* ── Screens ── */
+    .screen { display: none; width: 100%; max-width: 640px; flex: 1; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── Landing ── */
+    #landing {
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 32px 24px;
     }
+    #landing h2 { font-size: 1.6rem; color: #fff; text-align: center; }
+    #landing p  { color: #aaa; text-align: center; font-size: 0.9rem; }
+
+    .form-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+    .form-group label { font-size: 0.85rem; color: #aaa; }
+    .form-group input, .form-group select {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      font-size: 1rem;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #7b8cde; }
+
+    .age-check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #aaa; }
+    .age-check input { width: 16px; height: 16px; cursor: pointer; }
 
     .btn {
+      padding: 12px 28px;
+      border-radius: 8px;
       border: none;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-weight: 700;
       cursor: pointer;
-      transition: 0.2s ease;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: opacity 0.2s;
     }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #7b8cde; color: #fff; }
+    .btn-danger  { background: #e05c5c; color: #fff; }
+    .btn-success { background: #6bcb77; color: #111; }
+    .btn-sm { padding: 7px 16px; font-size: 0.85rem; }
 
-    .btn:hover { opacity: 0.9; }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-      color: white;
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, #ff7a7a, var(--danger));
-      color: white;
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, #7de7ae, var(--success));
-      color: #0d1f18;
-    }
-
-    .btn-ghost {
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .app-shell {
-      width: min(1100px, 100%);
-      height: min(88vh, 820px);
-      background: rgba(12, 20, 30, 0.88);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
+    /* ── Searching ── */
+    #searching {
       align-items: center;
-      gap: 12px;
-      padding: 16px 18px;
-      background: rgba(9, 16, 25, 0.96);
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-      color: #fff;
-      font-weight: 800;
-    }
-
-    .brand-text {
-      font-weight: 800;
-      letter-spacing: 0.04em;
-    }
-
-    .brand-sub {
-      display: block;
-      margin-top: 2px;
-      color: var(--muted);
-      font-size: 0.68rem;
-    }
-
-    .presence {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
-
-    .presence-pill {
-      padding: 6px 10px;
-      border-radius: 99px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid #333;
+      border-top-color: #7b8cde;
       border-radius: 50%;
-      background: var(--success);
-      display: inline-block;
-      box-shadow: 0 0 12px rgba(87, 211, 146, 0.9);
+      animation: spin 0.8s linear infinite;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .chat-main {
-      height: calc(100% - 80px);
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      background: rgba(11, 18, 27, 0.82);
-    }
-
-    .status-bar {
+    /* ── Chat ── */
+    #chat { padding: 0; }
+    #chatHeader {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(10, 17, 25, 0.9);
-      color: var(--muted);
-      min-height: 52px;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #1a1a2e;
+      border-bottom: 1px solid #2a2a4a;
+      gap: 8px;
+      flex-wrap: wrap;
     }
+    #partnerInfo { font-size: 0.95rem; color: #ccc; }
+    #partnerInfo span { color: #7b8cde; font-weight: 600; }
+    .chat-actions { display: flex; gap: 8px; align-items:center; }
 
-    #matchStatus {
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    #typingStatus {
-      font-size: 0.82rem;
-      color: var(--primary);
-      font-weight: 600;
-      min-height: 1.2em;
-    }
-
-    .messages {
+    #messages {
+      flex: 1;
       overflow-y: auto;
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      background: linear-gradient(180deg, rgba(15, 22, 33, 0.74), rgba(10, 17, 26, 0.82));
+      gap: 10px;
     }
-
-    .message-row {
-      display: flex;
-      width: 100%;
-    }
-
-    .message-row.incoming { justify-content: flex-start; }
-    .message-row.outgoing { justify-content: flex-end; }
-
-    .bubble {
-      max-width: 78%;
-      border-radius: 16px;
-      padding: 10px 12px;
-      word-break: break-word;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-    }
-
-    .message-row.incoming .bubble {
-      background: #1a2a3e;
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-top-left-radius: 6px;
-    }
-
-    .message-row.outgoing .bubble {
-      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-      color: white;
-      border-top-right-radius: 6px;
-    }
-
-    .bubble .sender {
-      display: block;
-      font-size: 0.72rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-      opacity: 0.9;
-    }
-
-    .bubble .text {
-      line-height: 1.45;
-      white-space: pre-wrap;
-    }
-
-    .photo-card {
-      width: min(280px, 72%);
-      background: rgba(20, 29, 40, 0.96);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 8px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
-    }
-
-    .photo-card img {
-      width: 100%;
-      border-radius: 10px;
-      display: block;
-      object-fit: cover;
-      max-height: 320px;
-    }
-
-    .photo-meta {
-      display: block;
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 8px;
-      padding: 0 4px 2px;
-    }
-
-    .composer {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px 16px;
-      border-top: 1px solid var(--border);
-      background: rgba(10, 17, 25, 0.96);
-    }
-
-    #messageInput {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .upload-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 12px;
+    .msg {
+      max-width: 75%;
+      padding: 9px 13px;
       border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 600;
-      white-space: nowrap;
+      font-size: 0.92rem;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .msg.mine    { align-self: flex-end; background: #7b8cde; color: #fff; border-bottom-right-radius: 3px; }
+    .msg.theirs  { align-self: flex-start; background: #2a2a3e; color: #e0e0e0; border-bottom-left-radius: 3px; }
+    .msg.system  { align-self: center; background: transparent; color: #888; font-size: 0.8rem; font-style: italic; }
+    .msg .sender { font-size: 0.75rem; opacity: 0.7; margin-bottom: 3px; }
+    
+    /* Photo message styling */
+    .msg.photo-mine { max-width: auto; padding: 0; background: transparent; }
+    .msg.photo-theirs { max-width: auto; padding: 0; background: transparent; }
+    .photo-content {
+      max-width: 200px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .photo-content img {
+      width: 100%;
+      height: auto;
+      display: block;
     }
 
-    .hidden {
-      display: none !important;
-    }
+    #typingIndicator { padding: 4px 16px; font-size: 0.8rem; color: #888; min-height: 22px; }
 
-    .empty-state {
+    #inputArea {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 200px;
-      color: var(--muted);
-      text-align: center;
-      padding: 20px;
-      font-size: 0.95rem;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #1a1a2e;
+      border-top: 1px solid #2a2a4a;
     }
+    #msgInput {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      outline: none;
+      resize: none;
+    }
+    #msgInput:focus { border-color: #7b8cde; }
+    
+    #fileInput { display: none; }
+    #cameraInput { display: none; }
 
-    @media (max-width: 560px) {
-      body { padding: 12px; }
-      .auth-shell, .app-shell { border-radius: 18px; }
-      .composer {
-        flex-wrap: wrap;
-      }
-      #messageInput {
-        width: 100%;
-        order: 1;
-      }
-      .upload-btn, #sendBtn {
-        order: 2;
-      }
-      .bubble { max-width: 85%; }
+    /* Photo menu */
+    .photo-menu {
+      position: absolute;
+      right: 8px;
+      top: 56px;
+      background: #111;
+      border: 1px solid #2a2a4a;
+      padding: 8px;
+      border-radius: 8px;
+      display: none;
+      z-index: 120;
+    }
+    .photo-menu.open { display: block; }
+
+    /* Call modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 200; }
+    .modal-overlay.open { display: flex; }
+    .modal-card { background:#111; padding:16px; border-radius:12px; width:90%; max-width:360px; }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 1rem; }
+      #onlineStats { font-size: 0.7rem; gap: 8px; }
+      .stat-item { padding: 3px 6px; }
+      .msg { max-width: 88%; }
+      .photo-content { max-width: 150px; }
     }
   </style>
 </head>
 <body>
-  <section id="loginScreen" class="screen active">
-    <div class="auth-shell">
-      <div class="auth-header">
-        <h1>Chat Karo</h1>
-        <p>Random chat with anyone</p>
-      </div>
 
-      <form id="loginForm" class="auth-form">
-        <div class="field">
-          <label for="nameInput">Name</label>
-          <input id="nameInput" name="name" maxlength="24" placeholder="Your name" required />
-        </div>
-
-        <div class="field">
-          <label for="genderInput">Gender</label>
-          <select id="genderInput" name="gender">
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-
-        <label class="check">
-          <input type="checkbox" id="ageCheck" required />
-          <span>I am 18+ and agree to continue.</span>
-        </label>
-
-        <button class="btn btn-primary" type="submit">Start Chatting</button>
-      </form>
+<header>
+  <div>
+    <h1>🔵 Chat Karo</h1>
+    <span class="subtitle">made by vishal</span>
+  </div>
+  <div id="onlineStats">
+    <div class="stat-item">
+      <span class="stat-label">👥 Total:</span>
+      <span class="stat-count" id="totalOnline">0</span>
     </div>
-  </section>
+    <div class="stat-item">
+      <span class="stat-label stat-male">♂ Male:</span>
+      <span class="stat-count stat-male" id="maleOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-female">♀ Female:</span>
+      <span class="stat-count stat-female" id="femaleOnline">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label stat-other">⚬ Other:</span>
+      <span class="stat-count stat-other" id="otherOnline">0</span>
+    </div>
+  </div>
+</header>
 
-  <section id="chatScreen" class="screen">
-    <div class="app-shell">
-      <header>
-        <div class="brand">
-          <div class="brand-mark">C</div>
-          <div>
-            <div class="brand-text">Chat Karo</div>
-            <span class="brand-sub">Live random chat</span>
-          </div>
-        </div>
+<!-- Photo menu (opened from chat header) -->
+<div id="photoMenu" class="photo-menu" aria-hidden="true">
+  <button class="btn btn-sm" onclick="openCameraCapture()">📸 Camera</button>
+  <button class="btn btn-sm" onclick="triggerGalleryUpload()">🖼️ Gallery</button>
+</div>
 
-        <div class="presence">
-          <span class="presence-pill"><span class="status-dot"></span> Online: <strong id="onlineCount">0</strong></span>
-        </div>
-      </header>
+<!-- Camera modal for desktop capture -->
+<div id="cameraModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card">
+    <h3 style="color:#fff">Take a photo</h3>
+    <video id="cameraVideo" autoplay playsinline style="width:100%;border-radius:8px;background:#000"></video>
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeCameraCapture()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="captureFromCamera()">Capture</button>
+    </div>
+  </div>
+</div>
 
-      <div class="chat-main">
-        <div class="status-bar">
-          <span id="matchStatus">Searching for a match...</span>
-          <span id="typingStatus"></span>
-        </div>
-
-        <div id="messages" class="messages">
-          <div class="empty-state">Waiting for someone to connect...</div>
-        </div>
-
-        <div class="composer">
-          <input id="messageInput" type="text" maxlength="500" placeholder="Type a message..." />
-          <label class="upload-btn">
-            <input id="photoInput" type="file" accept="image/*" hidden />
-            Add Photo
-          </label>
-          <button id="sendBtn" class="btn btn-primary" type="button">Send</button>
-        </div>
+<!-- Call modal -->
+<div id="callModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card" id="callCard">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:700;color:#fff" id="incomingCaller">Incoming call</div>
+        <div style="color:#aac;font-size:0.9rem" id="incomingInfo">Someone is calling you</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-danger btn-sm" onclick="declineCall()">Decline</button>
+        <button class="btn btn-success btn-sm" onclick="acceptCall()">Accept</button>
       </div>
     </div>
-  </section>
+  </div>
+</div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
+<!-- ── Landing Screen ── -->
+<div id="landing" class="screen active">
+  <h2>Meet Strangers, Chat Freely</h2>
+  <p>Connect with random people instantly. No sign-up needed.</p>
 
-    const loginScreen = document.getElementById('loginScreen');
-    const chatScreen = document.getElementById('chatScreen');
-    const loginForm = document.getElementById('loginForm');
-    const nameInput = document.getElementById('nameInput');
-    const genderInput = document.getElementById('genderInput');
-    const messagesEl = document.getElementById('messages');
-    const messageInput = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const photoInput = document.getElementById('photoInput');
-    const matchStatus = document.getElementById('matchStatus');
-    const typingStatus = document.getElementById('typingStatus');
-    const onlineCount = document.getElementById('onlineCount');
+  <div class="form-group">
+    <label for="nameInput">Your Name</label>
+    <input id="nameInput" type="text" placeholder="Enter your name" maxlength="30" />
+  </div>
 
-    const state = {
-      connected: false,
-      partnerName: '',
-      selectedPhoto: '',
-      typingTimer: null
-    };
+  <div class="form-group">
+    <label for="genderSelect">Your Gender</label>
+    <select id="genderSelect">
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
 
-    function setScreen(showChat) {
-      loginScreen.classList.toggle('active', !showChat);
-      chatScreen.classList.toggle('active', showChat);
+  <label class="age-check">
+    <input type="checkbox" id="ageCheck" />
+    I confirm I am 18 years or older
+  </label>
+
+  <button class="btn btn-primary" onclick="startSearch()">Start Chatting →</button>
+</div>
+
+<!-- ── Searching Screen ── -->
+<div id="searching" class="screen">
+  <div class="spinner"></div>
+  <p>Looking for someone to chat with…</p>
+  <button class="btn btn-danger btn-sm" onclick="cancelSearch()">Cancel</button>
+</div>
+
+<!-- ── Chat Screen ── -->
+<div id="chat" class="screen">
+  <div id="chatHeader">
+    <div id="partnerInfo">Chatting with <span id="partnerName">—</span></div>
+    <div class="chat-actions">
+      <button class="btn btn-sm" style="background:#2a2a4a;color:#ccc" onclick="togglePhotoMenu(event)">📷</button>
+      <button class="btn btn-success btn-sm" onclick="newChat()">Next →</button>
+      <button id="callBtn" class="btn btn-sm" title="Call" style="background:#2a2a4a;color:#cce" onclick="triggerCall()">📞</button>
+      <button class="btn btn-danger btn-sm" onclick="openReport()">🚩</button>
+    </div>
+  </div>
+
+  <div id="messages"></div>
+  <div id="typingIndicator"></div>
+
+  <div id="inputArea">
+    <textarea id="msgInput" rows="1" placeholder="Type a message…" maxlength="500"></textarea>
+    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    <input type="file" id="fileInput" accept="image/*" />
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+  </div>
+</div>
+
+<!-- ── Report Modal ── -->
+<div id="reportModal">
+  <div class="modal-box">
+    <h3>🚩 Report User</h3>
+    <select id="reportReason">
+      <option value="spam">Spam</option>
+      <option value="harassment">Harassment</option>
+      <option value="inappropriate">Inappropriate content</option>
+      <option value="underage">Suspected underage</option>
+      <option value="other">Other</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-sm" style="background:#333;color:#ccc" onclick="closeReport()">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="submitReport()">Submit Report</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  // ── Ringtone (WebAudio) - gentle plucked tone loop ──
+  let audioCtx, ringtoneOsc, ringtoneGain, ringtoneInterval;
+  function ensureAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
+  }
+  function playRingtone() {
+    ensureAudio();
+    stopRingtone();
+    ringtoneGain = audioCtx.createGain();
+    ringtoneGain.gain.value = 0.03; // low, pleasant
+    ringtoneGain.connect(audioCtx.destination);
 
-    function updateOnline(total) {
-      onlineCount.textContent = total || 0;
-    }
+    const now = audioCtx.currentTime;
+    ringtoneOsc = audioCtx.createOscillator();
+    ringtoneOsc.type = 'sine';
+    ringtoneOsc.frequency.value = 420;
+    ringtoneOsc.connect(ringtoneGain);
+    ringtoneOsc.start(now);
+    ringtoneOsc.stop(now + 1.2);
 
-    function setStatus(text) {
-      matchStatus.textContent = text;
-    }
+    ringtoneInterval = setInterval(() => {
+      try{ if (ringtoneOsc) ringtoneOsc.disconnect(); }catch(e){}
+      ringtoneOsc = audioCtx.createOscillator();
+      ringtoneOsc.type = 'sine';
+      ringtoneOsc.frequency.value = 420;
+      ringtoneOsc.connect(ringtoneGain);
+      ringtoneOsc.start();
+      setTimeout(()=>{ try{ ringtoneOsc.stop(); }catch(e){} }, 1200);
+    }, 2000);
 
-    function clearEmptyState() {
-      const empty = messagesEl.querySelector('.empty-state');
-      if (empty) empty.remove();
-    }
+    // also vibrate a short pattern while ringing if supported
+    try { if (navigator.vibrate) navigator.vibrate([200,150,200]); } catch(e){}
+  }
+  function stopRingtone() {
+    try { if (ringtoneOsc) ringtoneOsc.stop(); } catch(e){}
+    try { if (ringtoneOsc) ringtoneOsc.disconnect(); } catch(e){}
+    if (ringtoneInterval) { clearInterval(ringtoneInterval); ringtoneInterval = null; }
+    ringtoneOsc = null;
+    if (ringtoneGain) { try{ ringtoneGain.disconnect(); }catch(e){} ringtoneGain = null; }
+    try { if (navigator.vibrate) navigator.vibrate(0); } catch(e){}
+  }
 
-    function appendMessage(name, message, direction) {
-      clearEmptyState();
-      const row = document.createElement('div');
-      row.className = `message-row ${direction}`;
+  // ── UI helpers ──
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
 
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-
-      const sender = document.createElement('span');
-      sender.className = 'sender';
-      sender.textContent = name;
-
-      const text = document.createElement('div');
-      text.className = 'text';
-      text.textContent = message;
-
-      bubble.appendChild(sender);
-      bubble.appendChild(text);
-      row.appendChild(bubble);
-      messagesEl.appendChild(row);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    function appendPhoto(name, photo, direction) {
-      clearEmptyState();
-      const row = document.createElement('div');
-      row.className = `message-row ${direction}`;
-
-      const card = document.createElement('div');
-      card.className = 'photo-card';
-
+  function addMessage(text, type = 'system', sender = '', isPhoto = false) {
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    
+    if (isPhoto) {
+      div.className = `msg photo-${type}`;
+      const photoDiv = document.createElement('div');
+      photoDiv.className = 'photo-content';
       const img = document.createElement('img');
-      img.src = photo;
-      img.alt = 'Sent photo';
-
-      const meta = document.createElement('span');
-      meta.className = 'photo-meta';
-      meta.textContent = name;
-
-      card.appendChild(img);
-      card.appendChild(meta);
-      row.appendChild(card);
-      messagesEl.appendChild(row);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      img.src = text; // text contains the data URL
+      // allow viewing full size in new tab
+      img.style.cursor = 'pointer';
+      img.onclick = () => { window.open(text, '_blank'); };
+      photoDiv.appendChild(img);
+      div.appendChild(photoDiv);
+    } else {
+      div.className = `msg ${type}`;
+      if (sender) {
+        const s = document.createElement('div');
+        s.className = 'sender';
+        s.textContent = sender;
+        div.appendChild(s);
+      }
+      div.appendChild(document.createTextNode(text));
     }
+    
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
 
-    function showTypingIndicator(text) {
-      typingStatus.textContent = text;
-    }
+  function clearMessages() {
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('typingIndicator').textContent = '';
+  }
 
-    function resizeImage(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const maxSize = 700;
-            const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-            canvas.width = Math.max(1, Math.round(img.width * scale));
-            canvas.height = Math.max(1, Math.round(img.height * scale));
+  // ── Actions ──
+  function startSearch() {
+    const name = document.getElementById('nameInput').value.trim();
+    const gender = document.getElementById('genderSelect').value;
+    const ageOk = document.getElementById('ageCheck').checked;
 
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (!name) { alert('Please enter your name.'); return; }
+    if (!ageOk) { alert('You must confirm you are 18+ to continue.'); return; }
 
-            let quality = 0.82;
-            let dataUrl = canvas.toDataURL('image/jpeg', quality);
-            const maxBytes = 70 * 1024;
+    showScreen('searching');
+    socket.emit('startSearch', { name, gender });
+  }
 
-            while (dataUrl.length > maxBytes * 1.4 && quality > 0.35) {
-              quality -= 0.08;
-              dataUrl = canvas.toDataURL('image/jpeg', quality);
-            }
+  function cancelSearch() {
+    socket.emit('newChat'); // clears queue server-side
+    showScreen('landing');
+  }
 
-            resolve(dataUrl);
-          };
-          img.onerror = reject;
-          img.src = reader.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
+  function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    socket.emit('sendMessage', msg);
+    addMessage(msg, 'mine');
+    input.value = '';
+    socket.emit('stopTyping');
+  }
 
-    function handlePhotoSelection(file) {
-      if (!file) return;
-      resizeImage(file)
-        .then((compressed) => {
-          state.selectedPhoto = compressed;
-          const preview = document.createElement('div');
-          preview.className = 'photo-card';
-          preview.innerHTML = `<img src="${compressed}" alt="Selected preview" /><span class="photo-meta">Photo ready to send</span>`;
+  function newChat() {
+    clearMessages();
+    socket.emit('newChat');
+    showScreen('searching');
+  }
 
-          const existing = messagesEl.querySelector('.preview-box');
-          if (existing) existing.remove();
-          preview.classList.add('preview-box');
-          messagesEl.appendChild(preview);
-          messagesEl.scrollTop = messagesEl.scrollHeight;
-        })
-        .catch(() => {
-          setStatus('Photo could not be processed. Please try another image.');
-        });
-    }
+  function openReport()  { document.getElementById('reportModal').classList.add('open'); }
+  function closeReport() { document.getElementById('reportModal').classList.remove('open'); }
 
-    loginForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const name = nameInput.value.trim();
-      const gender = genderInput.value;
+  function submitReport() {
+    const reason = document.getElementById('reportReason').value;
+    socket.emit('report', { reason });
+    closeReport();
+    clearMessages();
+    addMessage('User reported. Finding a new match…', 'system');
+    showScreen('searching');
+  }
 
-      if (!name) {
-        setStatus('Please enter your name.');
+  // ── Photo menu handling ──
+  function togglePhotoMenu(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('photoMenu');
+    menu.classList.toggle('open');
+    menu.setAttribute('aria-hidden', menu.classList.contains('open') ? 'false' : 'true');
+  }
+  document.body.addEventListener('click', () => {
+    const menu = document.getElementById('photoMenu');
+    menu.classList.remove('open');
+    menu.setAttribute('aria-hidden', 'true');
+  });
+
+  function triggerGalleryUpload() {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.click();
+  }
+
+  // Camera flow: prefer getUserMedia capture for desktop and fallback to cameraInput for mobile
+  let cameraStream;
+  async function openCameraCapture() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        const video = document.getElementById('cameraVideo');
+        video.srcObject = cameraStream;
+        document.getElementById('cameraModal').classList.add('open');
+        document.getElementById('cameraModal').setAttribute('aria-hidden', 'false');
         return;
+      } catch (err) {
+        // fallthrough to mobile input
       }
+    }
+    // fallback to mobile camera input if available
+    const cameraInput = document.getElementById('cameraInput');
+    if (cameraInput) cameraInput.click();
+  }
+  function closeCameraCapture() {
+    document.getElementById('cameraModal').classList.remove('open');
+    document.getElementById('cameraModal').setAttribute('aria-hidden', 'true');
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+  }
+  function captureFromCamera() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 1024;
+    canvas.height = video.videoHeight || 768;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(async (blob) => {
+      closeCameraCapture();
+      const file = new File([blob], 'capture.jpg', { type: blob.type });
+      await processAndSendPhoto(file);
+    }, 'image/jpeg', 0.9);
+  }
 
-      socket.emit('startSearch', { name, gender });
-      setScreen(true);
-      setStatus('Searching for a match...');
-      showTypingIndicator('');
-      state.connected = false;
-      state.partnerName = '';
-    });
+  // ── Photo Upload & Compression ──
+  async function processAndSendPhoto(file) {
+    if (!file) return;
+    // allow up to 8MB before compression; we'll compress aggressively for faster transfer
+    const dataUrl = await compressImageFile(file, 1024, 0.7);
+    if (!dataUrl) { alert('Failed to process image'); return; }
 
-    sendBtn.addEventListener('click', () => {
-      const message = messageInput.value.trim();
+    // Send smaller base64 over socket
+    socket.emit('sendPhoto', dataUrl);
+    addMessage(dataUrl, 'mine', '', true);
+  }
 
-      if (state.selectedPhoto) {
-        socket.emit('sendPhoto', state.selectedPhoto);
-        appendPhoto('You', state.selectedPhoto, 'outgoing');
-        state.selectedPhoto = '';
-        const preview = messagesEl.querySelector('.preview-box');
-        if (preview) preview.remove();
-      }
+  function compressImageFile(file, maxDim = 1024, quality = 0.7) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > height && width > maxDim) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else if (height > width && height > maxDim) {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          } else if (width > maxDim) {
+            width = maxDim; height = Math.round(height * (maxDim / width));
+          }
 
-      if (message) {
-        socket.emit('sendMessage', message);
-        appendMessage('You', message, 'outgoing');
-        messageInput.value = '';
-      }
-    });
-
-    messageInput.addEventListener('input', () => {
-      if (!state.connected) return;
-      socket.emit('typing');
-      clearTimeout(state.typingTimer);
-      state.typingTimer = setTimeout(() => socket.emit('stopTyping'), 800);
-    });
-
-    photoInput.addEventListener('change', (event) => {
-      const [file] = event.target.files;
-      if (!file) return;
-      handlePhotoSelection(file);
-      event.target.value = '';
-    });
-
-    socket.on('onlineStats', ({ total }) => {
-      updateOnline(total || 0);
-    });
-
-    socket.on('presence', ({ total }) => {
-      updateOnline(total || 0);
-    });
-
-    socket.on('searching', () => {
-      setStatus('Searching for a match...');
-    });
-
-    socket.on('chatConnected', ({ partnerName, partnerGender }) => {
-      state.connected = true;
-      state.partnerName = partnerName;
-      setStatus(`Connected with ${partnerName} (${partnerGender})`);
-      showTypingIndicator('');
-      clearEmptyState();
-    });
-
-    socket.on('receiveMessage', ({ name, message }) => {
-      appendMessage(name, message, 'incoming');
-    });
-
-    socket.on('receivePhoto', ({ name, photo }) => {
-      appendPhoto(name, photo, 'incoming');
-    });
-
-    socket.on('partnerTyping', (name) => {
-      if (state.connected) showTypingIndicator(`${name} is typing...`);
-    });
-
-    socket.on('partnerStopTyping', () => {
-      if (state.connected) showTypingIndicator('');
-    });
-
-    socket.on('partnerDisconnected', () => {
-      state.connected = false;
-      state.partnerName = '';
-      setStatus('Partner left. Searching again...');
-      showTypingIndicator('');
-      socket.emit('startSearch', {
-        name: nameInput.value.trim() || 'Anonymous',
-        gender: genderInput.value
-      });
-    });
-
-    socket.on('connect', () => {
-      console.log('Connected to server');
-    });
-  </script>
-</body>
-</html>
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => re
