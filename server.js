@@ -26,20 +26,53 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+const validGenders = new Set(['male', 'female', 'other']);
+const normalizeGender = (gender) => (validGenders.has(gender) ? gender : 'other');
+
+function findAvailablePartner(targetGender, currentSocketId) {
+  const queue = waitingUsers[targetGender] || [];
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const candidate = queue[index];
+    if (!candidate || candidate.id === currentSocketId) continue;
+    if (!candidate.connected || connections[candidate.id]) continue;
+    return queue.splice(index, 1)[0];
+  }
+
+  return null;
+}
+
 io.on('connection', (socket) => {
   console.log(`[+] Connected: ${socket.id}`);
   admin.attach(socket);
 
   socket.on('startSearch', ({ name, gender, password }) => {
-    if (admin.gate(socket, name, gender, password)) return;
+    const safeName = String(name || '').trim();
+    const safeGender = normalizeGender(gender);
 
-    socket.userData = { name: socket.dn || sanitize(name), gender };
+    if (!safeName) {
+      socket.emit('authError', 'Please enter your name before searching.');
+      return;
+    }
+
+    if (admin.gate(socket, safeName, safeGender, password)) return;
+
+    removeFromQueue(socket);
+    endCurrentChat(socket, true);
+
+    if (userGenders[socket.id] && userGenders[socket.id] !== safeGender) {
+      onlineUsers[userGenders[socket.id]] = Math.max(0, onlineUsers[userGenders[socket.id]] - 1);
+    }
+
+    if (!userGenders[socket.id]) {
+      onlineUsers[safeGender] = (onlineUsers[safeGender] || 0) + 1;
+    }
+
+    userGenders[socket.id] = safeGender;
+
+    socket.userData = { name: socket.dn || sanitize(safeName), gender: safeGender };
     socket.searching = true;
-
-    userGenders[socket.id] = gender;
-    onlineUsers[gender]++;
     broadcastOnlineStats();
-
     matchUser(socket);
   });
 
@@ -83,8 +116,10 @@ io.on('connection', (socket) => {
   });
 
   socket.on('newChat', () => {
+    removeFromQueue(socket);
     endCurrentChat(socket, true);
     if (socket.userData) {
+      socket.searching = true;
       matchUser(socket);
     }
   });
@@ -112,35 +147,27 @@ io.on('connection', (socket) => {
 function matchUser(socket) {
   if (!socket.userData) return;
 
-  const { gender } = socket.userData;
-
-  ['male', 'female', 'other'].forEach((g) => {
-    waitingUsers[g] = waitingUsers[g].filter((s) => s.connected && !connections[s.id]);
-  });
-
+  const gender = normalizeGender(socket.userData.gender);
   removeFromQueue(socket);
 
-  let partner = null;
+  const preferredOrder = gender === 'male'
+    ? ['female', 'male']
+    : gender === 'female'
+      ? ['male', 'female']
+      : ['other'];
 
-  if (gender === 'male') {
-    if (waitingUsers.female.length > 0) {
-      partner = waitingUsers.female.shift();
-    } else if (waitingUsers.male.length > 0) {
-      partner = waitingUsers.male.shift();
-    }
-  } else if (gender === 'female') {
-    if (waitingUsers.male.length > 0) {
-      partner = waitingUsers.male.shift();
-    } else if (waitingUsers.female.length > 0) {
-      partner = waitingUsers.female.shift();
-    }
-  } else if (gender === 'other') {
-    if (waitingUsers.other.length > 0) {
-      partner = waitingUsers.other.shift();
-    }
-  }
+  for (const targetGender of preferredOrder) {
+    const partner = findAvailablePartner(targetGender, socket.id);
+    if (!partner) continue;
 
-  if (partner) {
+    if (!partner.userData || !partner.userData.gender) {
+      waitingUsers[targetGender].push(partner);
+      continue;
+    }
+
+    socket.searching = false;
+    partner.searching = false;
+
     connections[socket.id] = partner.id;
     connections[partner.id] = socket.id;
 
@@ -154,11 +181,13 @@ function matchUser(socket) {
     });
     admin.paired(socket, partner);
     console.log(`[~] Paired: ${socket.userData.name}(${gender}) ↔ ${partner.userData.name}(${partner.userData.gender})`);
-  } else {
-    waitingUsers[gender].push(socket);
-    socket.emit('searching');
-    console.log(`[?] Waiting: ${socket.userData.name}(${gender}) | Queues: M=${waitingUsers.male.length} F=${waitingUsers.female.length} O=${waitingUsers.other.length}`);
+    return;
   }
+
+  waitingUsers[gender].push(socket);
+  socket.searching = true;
+  socket.emit('searching');
+  console.log(`[?] Waiting: ${socket.userData.name}(${gender}) | Queues: M=${waitingUsers.male.length} F=${waitingUsers.female.length} O=${waitingUsers.other.length}`);
 }
 
 function endCurrentChat(socket, notifyPartner = false) {
@@ -173,8 +202,9 @@ function endCurrentChat(socket, notifyPartner = false) {
 
 function removeFromQueue(socket) {
   ['male', 'female', 'other'].forEach((g) => {
-    const idx = waitingUsers[g].indexOf(socket);
-    if (idx !== -1) waitingUsers[g].splice(idx, 1);
+    const queue = waitingUsers[g] || [];
+    const index = queue.findIndex((user) => user && user.id === socket.id);
+    if (index !== -1) queue.splice(index, 1);
   });
 }
 
