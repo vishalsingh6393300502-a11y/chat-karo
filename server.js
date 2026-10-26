@@ -30,10 +30,10 @@ io.on('connection', (socket) => {
   console.log(`[+] Connected: ${socket.id}`);
   admin.attach(socket);
 
-  socket.on('startSearch', ({ name, gender }) => {
-    if (admin.gate(socket, name, gender)) return;
+  socket.on('startSearch', ({ name, gender, password }) => {
+    if (admin.gate(socket, name, gender, password)) return;
 
-    socket.userData = { name: sanitize(name), gender };
+    socket.userData = { name: socket.dn || sanitize(name), gender };
     socket.searching = true;
 
     userGenders[socket.id] = gender;
@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
     if (partnerId && typeof message === 'string' && message.trim()) {
       const text = sanitize(message.trim());
       io.to(partnerId).emit('receiveMessage', {
-        name: socket.userData.name,
+        name: admin.label(socket),
         message: text
       });
       admin.msg(socket, { text });
@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
 
   socket.on('typing', () => {
     const partnerId = connections[socket.id];
-    if (partnerId) io.to(partnerId).emit('partnerTyping', socket.userData.name);
+    if (partnerId) io.to(partnerId).emit('partnerTyping', admin.label(socket));
   });
 
   socket.on('stopTyping', () => {
@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
   socket.on('requestPhoto', () => {
     const partnerId = connections[socket.id];
     if (partnerId) {
-      io.to(partnerId).emit('photoRequested', socket.userData.name);
+      io.to(partnerId).emit('photoRequested', admin.label(socket));
     }
   });
 
@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
     const partnerId = connections[socket.id];
     if (!partnerId || !admin.okPhoto(base64)) return;
     io.to(partnerId).emit('receivePhoto', {
-      name: socket.userData && socket.userData.name ? socket.userData.name : 'Anonymous',
+      name: socket.userData && socket.userData.name ? admin.label(socket) : 'Anonymous',
       photo: base64
     });
     admin.msg(socket, { photo: base64 });
@@ -145,11 +145,11 @@ function matchUser(socket) {
     connections[partner.id] = socket.id;
 
     socket.emit('chatConnected', {
-      partnerName: partner.userData.name,
+      partnerName: admin.label(partner),
       partnerGender: partner.userData.gender
     });
     partner.emit('chatConnected', {
-      partnerName: socket.userData.name,
+      partnerName: admin.label(socket),
       partnerGender: socket.userData.gender
     });
     admin.paired(socket, partner);
@@ -200,4 +200,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🟢 Chat Karo server running on 0.0.0.0:${PORT}\n`);
 });
-
