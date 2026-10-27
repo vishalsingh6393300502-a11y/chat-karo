@@ -113,9 +113,8 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
     const r = tries.get(ip) || { c: 0, t: 0 };
     if (Date.now() > r.t) { r.c = 0; r.t = Date.now() + 9e5; }
     if (r.c >= 8) return 'fail';
-    const first = !(db.dev && db.dev.h);
     const given = String(pw == null ? '' : pw);
-    if (!(first ? safeEq(given, BOOT) : okPw(db.dev, given))) {
+    if (!okPw(db.dev, given)) {
       r.c++; tries.set(ip, r); console.warn('[admin] wrong developer login');
       return 'fail';
     }
@@ -123,7 +122,7 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
     tokens.set(token, Date.now() + 12 * 36e5);
     socket.isAdmin = true;
     socket.join('admins');
-    socket.emit('adminGranted', { token, js: UI, first });
+    socket.emit('adminGranted', { token, js: UI, first: false });
     return true;
   }
 
@@ -153,7 +152,7 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
       if (ok) { socket.isAdmin = true; socket.join('admins'); }
       cb(ack)({ ok });
     });
-    A('admin:sync', (_, ack) => cb(ack)({ live: liveList(), users: userList(), past: pastList(), reports: reportList(), blocked: blockedList(), store: db.store, dev: devUser(), first: !(db.dev && db.dev.h) }));
+    A('admin:sync', (_, ack) => cb(ack)({ live: liveList(), users: userList(), past: pastList(), reports: reportList(), blocked: blockedList(), store: db.store, dev: devUser(), first: false }));
     A('admin:store', (on, ack) => { db.store = !!on; save(); toAdmins('admin:store', db.store); cb(ack)({ ok: true }); });
     A('admin:open', ({ kind, id }, ack) => {
       let c;
@@ -238,10 +237,8 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
   const esc = (s) => String(s == null ? '' : s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const when = (t) => new Date(t).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
   const page = (list) => '<!doctype html><meta charset="utf-8"><title>Chat Karo saved chats</title>' +
-    '<style>body{font:15px system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 12px}h2{font-size:16px;margin:28px 0 2px}.m{margin:6px 0}img{max-width:220px;border-radius:8px;display:b[...]
-    (list.length ? list.map((c) => `<h2>${esc(c.a.name)} (${esc(c.a.gender)}) and ${esc(c.b.name)} (${esc(c.b.gender)})</h2><small>${when(c.start)} to ${when(c.end)}</small>` +
-      c.m.map((e) => `<div class="m"><b>${esc(c[e.w].name)}:</b> ${e.photo ? `<img src="${esc(e.photo)}">` : e.photo === null ? '[photo removed]' : esc(e.text)}</div>`).join('')).join('') : '<p>No saved chats yet.</p>') +
-    '</body></html>';
+    '<style>body{font:15px system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 12px}h2{font-size:16px;margin:28px 0 2px}.m{margin:6px 0}img{max-width:220px;border-radius:8px;display:block}a{word-break:break-all}</style>' +
+    '<body>' + (list.length ? list.map((c) => '<h2>' + esc(c.a.name) + ' (' + esc(c.a.gender) + ') and ' + esc(c.b.name) + ' (' + esc(c.b.gender) + ')</h2><small>' + when(c.start) + ' to ' + when(c.end) + '</small>' + c.m.map((e) => '<div class="m"><b>' + esc(c[e.w].name) + ':</b> ' + (e.photo ? '<img src="' + esc(e.photo) + '">' : e.photo === null ? '[photo removed]' : esc(e.text)) + '</div>').join('')).join('') : '<p>No saved chats yet.</p>') + '</body></html>';
   app.get('/__a/dl', (req, res) => {
     if (!(tokens.get(req.get('x-admin-token')) > Date.now())) return res.sendStatus(404);
     const id = req.query.id;
@@ -273,13 +270,13 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
         if (P.auth(socket, name, gender, pw)) return true;
         const dv = deviceId(socket), ip = clientIp(socket);
         if (isBlocked(dv, ip)) { socket.emit('blocked'); return true; }
-        users.set(socket.id, { sid: socket.id, id: (dv || socket.id).slice(0, 6), name: socket.dn, acct: socket.acct, gender: gender === 'male' || gender === 'female' ? gender : 'other', dev: dv, ip, acct: socket.acct });
+        users.set(socket.id, { sid: socket.id, id: (dv || socket.id).slice(0, 6), name: socket.dn, acct: socket.acct, gender: gender === 'male' || gender === 'female' ? gender : 'other', dev: dv, ip });
         pushUsers();
         return false;
       } catch (e) {
         console.error('[admin] gate', e);
         socket.emit('authError', 'Something went wrong. Please try again.');
-        return true; // fail closed
+        return true;
       }
     },
     paired: safe((a, b) => {
