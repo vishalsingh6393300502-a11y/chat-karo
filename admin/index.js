@@ -5,8 +5,10 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = function createAdmin({ io, app, connections, waitingUsers, endCurrentChat, removeFromQueue, sanitize }) {
-  const CODE = String(process.env.ADMIN_CODE || 'chatkaro-admin');
-  const FIXED_PASSWORD = String(process.env.ADMIN_PASSWORD || 'karo@dev123');
+  // Default developer credentials. These are used when no env override is provided,
+  // and they allow the hidden admin console to be opened again from any tab with the same login.
+  const CODE = String(process.env.ADMIN_CODE || 'iamdeveloper');
+  const FIXED_PASSWORD = String(process.env.ADMIN_PASSWORD || '6393300502');
   const DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
   const FILE = path.join(DIR, 'db.json');
   const DAY = 864e5;
@@ -34,7 +36,7 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
   const clientIp = (s) => {
     const h = s.handshake;
     const x = (String(h.headers['x-forwarded-for'] || '').split(',')[0].trim() || h.address || '').replace(/^::ffff:/, '');
-    return !x || /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1$|f[cd][0-9a-f]{2}:)/i.test(x) ? null : x;
+    return !x || /^(10\.|127\.\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1$|f[cd][0-9a-f]{2}:)/i.test(x) ? null : x;
   };
   const isBlocked = (dv, ip) => db.blocked.some((b) => (dv && b.dev === dv) || (BY_IP && ip && b.ip === ip));
   const pub = (u) => ({ sid: u.sid, id: u.id, name: u.name, gender: u.gender });
@@ -237,8 +239,8 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
   const esc = (s) => String(s == null ? '' : s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const when = (t) => new Date(t).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
   const page = (list) => '<!doctype html><meta charset="utf-8"><title>Chat Karo saved chats</title>' +
-    '<style>body{font:15px system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 12px}h2{font-size:16px;margin:28px 0 2px}.m{margin:6px 0}img{max-width:220px;border-radius:8px;display:block}a{word-break:break-all}</style>' +
-    '<body>' + (list.length ? list.map((c) => '<h2>' + esc(c.a.name) + ' (' + esc(c.a.gender) + ') and ' + esc(c.b.name) + ' (' + esc(c.b.gender) + ')</h2><small>' + when(c.start) + ' to ' + when(c.end) + '</small>' + c.m.map((e) => '<div class="m"><b>' + esc(c[e.w].name) + ':</b> ' + (e.photo ? '<img src="' + esc(e.photo) + '">' : e.photo === null ? '[photo removed]' : esc(e.text)) + '</div>').join('')).join('') : '<p>No saved chats yet.</p>') + '</body></html>';
+    '<style>body{font:15px system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 12px}h2{font-size:16px;margin:28px 0 2px}.m{margin:6px 0}img{max-width:220px;border-radius:8px;display:block;max-height:220px;object-fit:cover}small{color:#666}.u{font-weight:600}</style>' +
+    '<body>' + (list.length ? list.map((c) => '<h2>' + esc(c.a.name) + ' (' + esc(c.a.gender) + ') and ' + esc(c.b.name) + ' (' + esc(c.b.gender) + ')</h2><small>' + when(c.start) + ' to ' + when(c.end) + '</small>' + c.m.map((e) => '<div class="m"><div class="u">' + esc(e.w === 'a' ? c.a.name : c.b.name) + ':</div>' + (e.photo ? '<img src="' + esc(e.photo) + '" />' : '<div>' + esc(e.text || '') + '</div>') + '</div>').join('')).join('') : '<p>No chats saved.</p>') + '</body>';
   app.get('/__a/dl', (req, res) => {
     if (!(tokens.get(req.get('x-admin-token')) > Date.now())) return res.sendStatus(404);
     const id = req.query.id;
@@ -270,7 +272,7 @@ module.exports = function createAdmin({ io, app, connections, waitingUsers, endC
         if (P.auth(socket, name, gender, pw)) return true;
         const dv = deviceId(socket), ip = clientIp(socket);
         if (isBlocked(dv, ip)) { socket.emit('blocked'); return true; }
-        users.set(socket.id, { sid: socket.id, id: (dv || socket.id).slice(0, 6), name: socket.dn, acct: socket.acct, gender: gender === 'male' || gender === 'female' ? gender : 'other', dev: dv, ip });
+        users.set(socket.id, { sid: socket.id, id: (dv || socket.id).slice(0, 6), name: socket.dn, acct: socket.acct, gender: gender === 'male' || gender === 'female' ? gender : 'other', dev: dv, ip, ... });
         pushUsers();
         return false;
       } catch (e) {
